@@ -12,7 +12,7 @@
 str:     expr '\n'
          {
              printf("%d\n", $1);
-	         main();
+	     main();
          }
          ;
 
@@ -22,9 +22,9 @@ expr:    expr '+' expr
          }
          |
          expr '-' expr
-		 {
-		     $$ = $1 - $3;
-		 }
+	 {
+	     $$ = $1 - $3;
+	 }
          |
          NUMBER
          ;       
