@@ -27,7 +27,7 @@ expr:    expr '+' expr
 		 }
          |
          NUMBER
-         ;      
+         ;     
 %%
 
 main()
