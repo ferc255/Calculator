@@ -7,6 +7,7 @@
 %token NUMBER
 
 %left '+' '-'
+%left '*' '/'
 
 %%   
 str:     expr '\n'
@@ -29,6 +30,16 @@ expr:    '(' expr ')'
          expr '-' expr
          {
              $$ = $1 - $3;
+         }
+         |
+         expr '*' expr
+         {
+             $$ = $1 * $3;
+         }
+         |
+         expr '/' expr
+         {
+             $$ = $1 / $3;
          }
          |
          NUMBER
