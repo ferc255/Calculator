@@ -2,6 +2,9 @@
 #include <stdio.h>
 %}
 
+%name-prefix "calc"
+%file-prefix "calc"
+
 %start str
 
 %token NUMBER
@@ -48,15 +51,15 @@ expr:    '(' expr ')'
 
 main()
 {
-    return(yyparse());
+    return(calcparse());
 }
 
-yyerror(s)
+calcerror(s)
 {
     printf("error\n");
 }
 
-yywrap()
+calcwrap()
 {
     return(1);
 }
