@@ -1,15 +1,17 @@
 %{
 #include <stdio.h>
-#include "y.tab.h"
+#include "calc.tab.h"
 %}
+
+%option prefix="calc"
 
 %%
 [' ']     ;
 [0-9]+    {
-              yylval = atoi(yytext);
+              calclval = atoi(calctext);
               return NUMBER;
           }
 [^0-9]    {             
-              return yytext[0]; 
+              return calctext[0]; 
           }
 %%
