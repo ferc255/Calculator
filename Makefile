@@ -1,15 +1,11 @@
-program:  y.tab.o lex.yy.o
-	gcc y.tab.o lex.yy.o -o calc
-	./calc
+calculator: lex.calc.c calc.tab.h calc.tab.c
+	gcc calc.tab.c lex.calc.c -o calc
 
-y.tab.o: y.tab.c
-	gcc -c y.tab.c
+lex.calc.c: calc.l
+	$(LEX) $^
 
-lex.yy.o: lex.yy.c  y.tab.h
-	gcc -c lex.yy.c
+calc.tab.c: calc.y
+	$(YACC) $^
 
-y.tab.c: calc.yacc
-	yacc -d calc.yacc
-
-lex.yy.c: calc.lex
-	lex calc.lex
+calc.tab.h: calc.y
+	$(YACC) -d $^
