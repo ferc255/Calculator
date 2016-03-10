@@ -1,4 +1,5 @@
 %{
+#include <stdlib.h>
 #include <stdio.h>
 %}
 
@@ -16,7 +17,7 @@
 str:     expr '\n'
          {
              printf("%d\n", $1);
-             main();
+             return 1;
          }
          ;
 
@@ -49,9 +50,36 @@ expr:    '(' expr ')'
          ;       
 %%
 
-main()
+
+main(int argc, char* argv[])
 {
-    return(calcparse());
+	FILE *fp;
+	if((fp = fopen("auxilary.txt", "w")) == NULL)
+	{
+		printf("couldn't open file for writing\n");
+		return 0;
+	}
+
+	int i = 1;
+	for (; i < argc; i++)
+	{
+		fprintf(fp, "%s ", argv[i]);
+	}
+	fprintf(fp, "\n");
+
+	fclose(fp);
+
+	if((fp = fopen("auxilary.txt", "r")) == NULL) 
+	{
+		printf("couldn't open temp for reading\n");
+		return 0;
+	}
+
+	extern FILE *calcin;
+	calcin=fp;
+	yyparse();
+
+	fclose(fp);
 }
 
 calcerror(s)
