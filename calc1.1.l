@@ -7,11 +7,16 @@
 
 %%
 [' ']     ;
-[0-9]+    {
-              calclval = atoi(calctext);
-              return NUMBER;
-          }
-[^0-9]    {             
-              return calctext[0]; 
-          }
+[0-9]+\.[0-9]+     {
+                       calclval.dbl = atof(calctext);
+                       return FLOAT;
+                   }
+[0-9]+             {
+                       calclval.itg = atoi(calctext);
+                       return INTEGER;
+                   }
+[^0-9]             {             
+                       return calctext[0]; 
+                   }
 %%
+
