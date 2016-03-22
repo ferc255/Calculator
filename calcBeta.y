@@ -6,48 +6,74 @@
 %name-prefix "calc"
 %file-prefix "calc"
 
+
+
+%union 
+{
+    int itg; 
+    double dbl;
+	struct
+	{
+		int type;
+		int fint;
+		double fdbl;
+	} pair;
+}
+
 %start str
 
-%token NUMBER
+%token <itg> INTEGER
+%token <dbl> FLOAT
 
 %left '+' '-'
 %left '*' '/'
+%type <pair> expr
+%type <pair> intNum
+%type <pair> doubNum
 
 %%   
 str:     expr '\n'
          {
-             printf("%d\n", $1);
+			 if($1.type == 0)
+				 printf("%d\n", $1.fint);
+			 else
+				 printf("%f\n", $1.fdbl);
              return 1;
          }
          ;
 
-expr:    '(' expr ')'
+expr:    expr '+' expr
          {
-             $$ = $2;
+             if ($1.type == 0 && $3.type == 0)
+			 {
+				 $$.type = 0;
+				 $$.fint = $1.fint + $3.fint;
+				 $$.fdbl = (double) $$.fint;
+			 }
+			 else
+			 {
+				 $$.type = 1;
+				 $$.fdbl = $1.fdbl + $3.fdbl;
+			 }
          }
          |
-         expr '+' expr
+         intNum
+		 |
+		 doubNum
+         ;   
+
+intNum:  INTEGER
          {
-             $$ = $1 + $3;
-         }
-         |
-         expr '-' expr
+			 $$.type = 0;
+			 $$.fint = $1;
+			 $$.fdbl = (double) $$.fint;
+		 }
+
+doubNum: FLOAT
          {
-             $$ = $1 - $3;
-         }
-         |
-         expr '*' expr
-         {
-             $$ = $1 * $3;
-         }
-         |
-         expr '/' expr
-         {
-             $$ = $1 / $3;
-         }
-         |
-         NUMBER
-         ;       
+			 $$.type = 1;
+			 $$.fdbl = $1;
+		 }    
 %%
 
 
