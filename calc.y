@@ -65,7 +65,7 @@ main(int argc, char* argv[])
 	}
 	input[totalLen++] = '\n';
 
-    struct calc_buffer_state* buffer = calc_scan_bytes(input, totalLen);
+	struct calc_buffer_state* buffer = calc_scan_bytes(input, totalLen);
 	calcparse();
 }
 
