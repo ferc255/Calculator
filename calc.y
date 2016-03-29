@@ -51,10 +51,7 @@ expr:    '(' expr ')'
          ;       
 %%
 
-typedef struct calc_buffer_state* CALC_BUFFER_STATE;
-extern int calcparse();
-extern CALC_BUFFER_STATE calc_scan_bytes(char * str, int len);
-extern void calc_delete_buffer(CALC_BUFFER_STATE buffer);
+extern struct calc_buffer_state* calc_scan_bytes(char * str, int len);
 
 main(int argc, char* argv[])
 {
@@ -68,9 +65,8 @@ main(int argc, char* argv[])
 	}
 	input[totalLen++] = '\n';
 
-	CALC_BUFFER_STATE buffer = calc_scan_bytes(input, totalLen);
+    struct calc_buffer_state* buffer = calc_scan_bytes(input, totalLen);
 	calcparse();
-	calc_delete_buffer(buffer);
 }
 
 calcerror(s)
