@@ -1,6 +1,7 @@
 %{
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 %}
 
 %name-prefix "calc"
@@ -50,36 +51,26 @@ expr:    '(' expr ')'
          ;       
 %%
 
+typedef struct calc_buffer_state* CALC_BUFFER_STATE;
+extern int calcparse();
+extern CALC_BUFFER_STATE calc_scan_bytes(char * str, int len);
+extern void calc_delete_buffer(CALC_BUFFER_STATE buffer);
 
 main(int argc, char* argv[])
 {
-	FILE *fp;
-	if((fp = fopen("auxilary.txt", "w")) == NULL)
+	char input[100] = "";
+	int totalLen = 0;
+	int i;
+	for (i = 1; i < argc; i++)
 	{
-		printf("couldn't open file for writing\n");
-		return 0;
+		strcat(input, argv[i]);
+		totalLen += strlen(argv[i]);
 	}
+	input[totalLen++] = '\n';
 
-	int i = 1;
-	for (; i < argc; i++)
-	{
-		fprintf(fp, "%s ", argv[i]);
-	}
-	fprintf(fp, "\n");
-
-	fclose(fp);
-
-	if((fp = fopen("auxilary.txt", "r")) == NULL) 
-	{
-		printf("couldn't open temp for reading\n");
-		return 0;
-	}
-
-	extern FILE *calcin;
-	calcin=fp;
-	yyparse();
-
-	fclose(fp);
+	CALC_BUFFER_STATE buffer = calc_scan_bytes(input, totalLen);
+	calcparse();
+	calc_delete_buffer(buffer);
 }
 
 calcerror(s)
