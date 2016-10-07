@@ -1,0 +1,124 @@
+%{
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "tpdefs.h"
+int max(int a, int b)
+{
+	return (a >= b) ? a : b;
+}
+void cast_value(value_t* value, value_type_t target)
+{
+	switch (target)
+	{
+		case VT_INT:
+			switch(value->type)
+			{
+				case VT_FLOAT:
+					value->llint = value->ldl;
+					break;
+			}
+			break;
+		case VT_FLOAT:
+			switch(value->type)
+			{
+				case VT_INT:
+					value->ldl = value->llint;
+					break;
+			}
+			break;
+	}
+	value->type = target;
+}
+%}
+%name-prefix "calc"
+%file-prefix "calc"
+%union 
+{	
+	value_t num_t;
+};
+%start str
+%token <num_t> INT
+%token <num_t> DOUBLE
+%left '+' '-'
+%left '*' '/'
+%type <num_t> expr
+%%   
+str:		expr '\n'
+			{
+				switch ($1.type)
+				{
+			 		case VT_INT:
+						printf("%lld\n", $1.llint);
+						break;
+			 		case VT_FLOAT:
+						printf("%Lf\n", $1.ldl);
+						break;
+				}
+				return 1;
+			}
+         	;
+expr:    expr '+' expr
+         {
+			 value_type_t maxType = max($1.type, $3.type);
+			 $$.type = maxType;
+			 cast_value(&$1, maxType);
+			 cast_value(&$3, maxType);
+			 switch (maxType)
+			 {
+			 	case VT_INT:
+					 $$.llint = $1.llint + $3.llint;
+					 break;
+			 	case VT_FLOAT:
+					 $$.ldl = $1.ldl + $3.ldl;
+					 break;
+			 }
+         }
+         |
+         INT
+         |
+         DOUBLE
+         ;    
+%%
+extern struct calc_buffer_state* calc_scan_string(char* str);
+main(int argc, char* argv[])
+{
+	int block = 10;
+	char* input = malloc(block);
+	int maxLen = block;
+	int i = 0;
+	int curArg = 1;
+	int pos = 0;
+	while (curArg != argc)
+	{
+		char c = argv[curArg][pos++];
+		input[i++] = c;
+		if (i == maxLen)
+		{
+			maxLen += block;
+			input = realloc(input, maxLen);
+		}
+		if (pos == strlen(argv[curArg]))
+		{
+			curArg++;
+			pos = 0;
+		}
+	}
+	if (i + 1 >= maxLen)
+	{
+		maxLen += 2;
+		input = realloc(input, maxLen);
+	}
+	input[i++] = '\n';
+	input[i++] = '\0';
+	struct calc_buffer_state* buffer = calc_scan_string(input);
+	calcparse();
+}
+calcerror(s)
+{
+	printf("error\n");
+}
+calcwrap()
+{
+	return(1);
+}
