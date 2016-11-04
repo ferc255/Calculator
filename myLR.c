@@ -116,7 +116,7 @@ bool read_input_line(token_t input[])
 				break;
 			default:
 				printf("Error during parcing input at %dth token\n", i);
-				return true;
+				return false;
 			}
 		}
 	}
@@ -216,7 +216,6 @@ bool solve(token_t input[], table_t table[12][6], int trans[12][3])
 int main(void)
 {
 	freopen("input.txt", "r", stdin);
-
 
 	token_t input[100];	
 	if (!read_input_line(input)) return 0;	
