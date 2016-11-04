@@ -1,6 +1,6 @@
 #include <stdio.h>
-//#include <string.h>
-#include <string>
+#include <string.h>
+//#include <string>
 
 const int N = 100;
 
@@ -40,6 +40,12 @@ typedef struct
 	sign_t col;
 	int integer;
 } token_t;
+
+typedef enum
+{
+	false,
+	true
+} bool;
 
 void apply(token_t result[], int* result_top, int num)
 {
@@ -110,7 +116,7 @@ bool read_input_line(token_t input[])
 				break;
 			default:
 				printf("Error during parcing input at %dth token\n", i);
-				return false;
+				return true;
 			}
 		}
 	}
@@ -199,10 +205,10 @@ bool solve(token_t input[], table_t table[12][6], int trans[12][3])
 			break;
 		case ERR:
 			printf("ERROR in %d state!\n", cur_state);
-			return 0;
+			return false;
 		case ACC:
 			printf("Answer: %d\n", result[0].integer);
-			return 0;
+			return true;
 		}
 	}
 }
@@ -210,6 +216,7 @@ bool solve(token_t input[], table_t table[12][6], int trans[12][3])
 int main(void)
 {
 	freopen("input.txt", "r", stdin);
+
 
 	token_t input[100];	
 	if (!read_input_line(input)) return 0;	
