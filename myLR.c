@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <complex.h>
 #include <string.h>
 //#include <string>
 
@@ -25,12 +24,28 @@ typedef enum
 	CHAR
 } data_t;
 
+typedef enum
+{
+	INT,
+	PLUS,
+	MULTIP,
+	OPEN,
+	CLOSE,
+	END
+} sign_t;
+
 typedef struct
 {
 	data_t type;
-	int col;
+	sign_t col;
 	int integer;
 } token_t;
+
+typedef enum
+{
+	false,
+	true
+} bool;
 
 void apply(token_t result[], int* result_top, int num)
 {
@@ -67,11 +82,8 @@ int to_digit(char temp[], int end)
 	return atoi(s);
 }
 
-int main(void)
+bool read_input_line(token_t input[])
 {
-	freopen("input.txt", "r", stdin);
-	token_t input[100];
-	int input_idx = 0;
 	int n;
 	scanf("%d", &n);
 	int i;
@@ -82,7 +94,7 @@ int main(void)
 		if (isdigit(temp[0]))
 		{
 			input[i].type = DIGIT;
-			input[i].col = 0;
+			input[i].col = INT;
 			input[i].integer = atoi(temp);
 		}
 		else
@@ -91,26 +103,30 @@ int main(void)
 			switch (temp[0])
 			{
 			case '+':
-				input[i].col = 1;
+				input[i].col = PLUS;
 				break;
 			case '*':
-				input[i].col = 2;
+				input[i].col = MULTIP;
 				break;
 			case '(':
-				input[i].col = 3;
+				input[i].col = OPEN;
 				break;
 			case ')':
-				input[i].col = 4;
+				input[i].col = CLOSE;
 				break;
 			default:
-				printf("Error during parcing input at %dth token", i);
-				return 0;
+				printf("Error during parcing input at %dth token\n", i);
+				return false;
 			}
 		}
 	}
-	input[n].col = 5;
+	input[n].col = END;
+	return true;
+}
 
-	table_t table[12][6];
+bool fill_table(table_t table[12][6], int trans[12][3])
+{
+	int i;
 	for (i = 0; i < 12; i++)
 	{
 		int j;
@@ -142,20 +158,25 @@ int main(void)
 				else
 				{
 					printf("Error during parsing table at %d %d position\n", i, j);
-					return 0;
+					return false;
 				}
 			}
 		}
 	}
 	table[1][5].type = ACC;
 
-	int trans[12][3];
 	trans[0][0] = 1;
 	trans[0][1] = trans[4][1] = 2;
 	trans[0][2] = trans[4][2] = trans[6][2] = 3;
 	trans[4][0] = 8;
 	trans[6][1] = 9;
 	trans[7][2] = 10;
+	return true;
+}
+
+bool solve(token_t input[], table_t table[12][6], int trans[12][3])
+{
+	int input_idx = 0;
 
 	int state_top = 0;
 	int state[100];
@@ -184,13 +205,26 @@ int main(void)
 			break;
 		case ERR:
 			printf("ERROR in %d state!\n", cur_state);
-			return 0;
+			return false;
 		case ACC:
 			printf("Answer: %d\n", result[0].integer);
-			return 0;
+			return true;
 		}
 	}
+}
 
+int main(void)
+{
+	freopen("input.txt", "r", stdin);
+
+	token_t input[100];	
+	if (!read_input_line(input)) return 0;	
+
+	table_t table[12][6];
+	int trans[12][3];
+	if (!fill_table(table, trans)) return 0;	
+
+	if (!solve(input, table, trans)) return 0;
 
 	return 0;
 }
