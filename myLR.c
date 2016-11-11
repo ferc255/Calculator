@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 //#include <string>
 
 const int N = 100;
@@ -42,12 +43,6 @@ typedef struct
 	sign_t col;
 	int integer;
 } token_t;
-
-typedef enum
-{
-	false,
-	true
-} bool;
 
 void apply(token_t result[], int* result_top, int num)
 {
