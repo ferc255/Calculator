@@ -31,7 +31,9 @@ typedef enum
 	MULTIP,
 	OPEN,
 	CLOSE,
-	END
+	END,
+	MINUS,
+	DIVIS
 } sign_t;
 
 typedef struct
@@ -64,6 +66,12 @@ void apply(token_t result[], int* result_top, int num)
 		break;
 	case 5:
 		result[*result_top - 2].integer = result[*result_top - 1].integer;
+		break;
+	case 7:
+		result[*result_top - 2].integer -= result[*result_top].integer;
+		break;
+	case 9:
+		result[*result_top - 2].integer /= result[*result_top].integer;
 		break;
 	}
 
@@ -114,6 +122,12 @@ bool read_input_line(token_t input[])
 			case ')':
 				input[i].col = CLOSE;
 				break;
+			case '-':
+				input[i].col = MINUS;
+				break;
+			case '/':
+				input[i].col = DIVIS;
+				break;
 			default:
 				printf("Error during parcing input at %dth token\n", i);
 				return false;
@@ -124,13 +138,13 @@ bool read_input_line(token_t input[])
 	return true;
 }
 
-bool fill_table(table_t table[12][6], int trans[12][3])
+bool fill_table(table_t table[16][8], int trans[16][3])
 {
 	int i;
-	for (i = 0; i < 12; i++)
+	for (i = 0; i < 16; i++)
 	{
 		int j;
-		for (j = 0; j < 6; j++)
+		for (j = 0; j < 8; j++)
 		{
 			char temp[5];
 			scanf("%s", temp);
@@ -171,10 +185,13 @@ bool fill_table(table_t table[12][6], int trans[12][3])
 	trans[4][0] = 8;
 	trans[6][1] = 9;
 	trans[7][2] = 10;
+	trans[14][2] = 12;
+	trans[15][1] = 13;
+	trans[15][2] = 3;
 	return true;
 }
 
-bool solve(token_t input[], table_t table[12][6], int trans[12][3])
+bool solve(token_t input[], table_t table[16][8], int trans[16][3])
 {
 	int input_idx = 0;
 
@@ -185,7 +202,8 @@ bool solve(token_t input[], table_t table[12][6], int trans[12][3])
 	token_t result[100];
 	int result_top = -1;
 
-	int gramma_size[7] = { 0, 3, 1, 3, 1, 3, 1 };
+	int gramma_size[10] = { 0, 3, 1, 3, 1, 3, 1, 3, 0, 3 };
+	int gramma_head[10] = { -1, 0, 0, 1, 1, 2, 2, 0, -1, 1 };
 
 	while (1)
 	{
@@ -201,7 +219,7 @@ bool solve(token_t input[], table_t table[12][6], int trans[12][3])
 			apply(result, &result_top, action.num);
 			state_top -= gramma_size[action.num];
 			cur_state = state[state_top];
-			state[++state_top] = trans[cur_state][(action.num - 1) / 2];
+			state[++state_top] = trans[cur_state][gramma_head[action.num]];
 			break;
 		case ERR:
 			printf("ERROR in %d state!\n", cur_state);
@@ -220,8 +238,8 @@ int main(void)
 	token_t input[100];	
 	if (!read_input_line(input)) return 0;	
 
-	table_t table[12][6];
-	int trans[12][3];
+	table_t table[16][8];
+	int trans[16][3];
 	if (!fill_table(table, trans)) return 0;	
 
 	if (!solve(input, table, trans)) return 0;
