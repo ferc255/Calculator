@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 //#include <string>
-
+          
 const int N = 100;
 
 typedef enum
@@ -133,47 +133,8 @@ bool read_input_line(token_t input[])
 	return true;
 }
 
-bool fill_table(table_t table[16][8], int trans[16][3])
+bool fill_table(int trans[16][3])
 {
-	int i;
-	for (i = 0; i < 16; i++)
-	{
-		int j;
-		for (j = 0; j < 8; j++)
-		{
-			char temp[5];
-			scanf("%s", temp);
-			if (temp[0] == '0')
-			{
-				table[i][j].type = ERR;
-			}
-			else
-			{
-				int z = 1;
-				while (isdigit(temp[z]))
-				{
-					z++;
-				}
-				table[i][j].num = to_digit(temp, z);
-
-				if (temp[0] == 's')
-				{
-					table[i][j].type = SHIFT;
-				}
-				else if (temp[0] == 'r')
-				{
-					table[i][j].type = REDUCE;
-				}
-				else
-				{
-					printf("Error during parsing table at %d %d position\n", i, j);
-					return false;
-				}
-			}
-		}
-	}
-	table[1][5].type = ACC;
-
 	trans[0][0] = 1;
 	trans[0][1] = trans[4][1] = 2;
 	trans[0][2] = trans[4][2] = trans[6][2] = 3;
@@ -233,9 +194,29 @@ int main(void)
 	token_t input[100];	
 	if (!read_input_line(input)) return 0;	
 
-	table_t table[16][8];
+	table_t table[16][8] =
+	{
+		{{SHIFT, 5}, {ERR, 0}, {ERR, 0}, {SHIFT, 4}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}},
+		{{ERR, 0}, {SHIFT, 6}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {SHIFT, 15}, {ERR, 0}},
+		{{ERR, 0}, {REDUCE, 2}, {SHIFT, 7}, {ERR, 0}, {REDUCE, 2}, {REDUCE, 2}, {REDUCE, 2}, {SHIFT, 14}},
+		{{ERR, 0}, {REDUCE, 4}, {REDUCE, 4}, {ERR, 0}, {REDUCE, 4}, {REDUCE, 4}, {REDUCE, 4}, {REDUCE, 4}},
+		{{SHIFT, 5}, {ERR, 0}, {ERR, 0}, {SHIFT, 4}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}},
+		{{ERR, 0}, {REDUCE, 6}, {REDUCE, 6}, {ERR, 0}, {REDUCE, 6}, {REDUCE, 6}, {REDUCE, 6}, {REDUCE, 6}},
+		{{SHIFT, 5}, {ERR, 0}, {ERR, 0}, {SHIFT, 4}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}},
+		{{SHIFT, 5}, {ERR, 0}, {ERR, 0}, {SHIFT, 4}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}},
+		{{ERR, 0}, {SHIFT, 6}, {ERR, 0}, {ERR, 0}, {SHIFT, 11}, {ERR, 0}, {SHIFT, 15}, {ERR, 0}},
+		{{ERR, 0}, {REDUCE, 1}, {SHIFT, 7}, {ERR, 0}, {REDUCE, 1}, {REDUCE, 1}, {REDUCE, 1}, {SHIFT, 14}},
+		{{ERR, 0}, {REDUCE, 3}, {REDUCE, 3}, {ERR, 0}, {REDUCE, 3}, {REDUCE, 3}, {REDUCE, 3}, {REDUCE, 3}},
+		{{ERR, 0}, {REDUCE, 5}, {REDUCE, 5}, {ERR, 0}, {REDUCE, 5}, {REDUCE, 5}, {REDUCE, 5}, {REDUCE, 5}},
+		{{ERR, 0}, {REDUCE, 9}, {REDUCE, 9}, {ERR, 0}, {REDUCE, 9}, {REDUCE, 9}, {REDUCE, 9}, {REDUCE, 9}},
+		{{ERR, 0}, {REDUCE, 7}, {SHIFT, 7}, {ERR, 0}, {REDUCE, 7}, {REDUCE, 7}, {REDUCE, 7}, {SHIFT, 14}},
+		{{SHIFT, 5}, {ERR, 0}, {ERR, 0}, {SHIFT, 4}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}},
+		{{SHIFT, 5}, {ERR, 0}, {ERR, 0}, {SHIFT, 4}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}}
+	};
+	table[1][5].type = ACC;
+
 	int trans[16][3];
-	if (!fill_table(table, trans)) return 0;	
+	if (!fill_table(trans)) return 0;	
 
 	if (!solve(input, table, trans)) return 0;
 
