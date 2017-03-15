@@ -1,4 +1,3 @@
-#include "values.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,9 +5,9 @@
 #include <ctype.h>
 #include <limits.h>
 
-extern int yylex();
-extern int yylineno;
-extern char* yytext;
+#include "values.h"
+
+extern state_t* yylex();
 
 typedef enum {
   SHIFT,
@@ -21,13 +20,6 @@ typedef struct {
   action_t action;
   int num;
 } table_t;
-
-
-typedef struct
-{
-	token_t token;
-	int number;
-} state_t;
 
 void apply(state_t result[], int* result_top, int num)
 {
@@ -58,20 +50,10 @@ void apply(state_t result[], int* result_top, int num)
   *result_top -= 2;
 }
 
-static void
-lex (state_t * input)
-{
-	input->token = yylex();
-	if (input->token == NUMBER)
-	{
-		input->number = atoi(yytext);
-	}	 
-}
 
 bool solve(table_t table[16][8], int trans[16][3])
 {
-  state_t input;
-  lex (&input);
+  state_t* input = yylex();
 
   int state_top = 0;
   int state[100];
@@ -86,12 +68,12 @@ bool solve(table_t table[16][8], int trans[16][3])
   while (1)
     {
       int cur_state = state[state_top];
-      table_t action = table[cur_state][input.token];
+      table_t action = table[cur_state][input->token];
       switch (action.action)
 	{
 	case SHIFT:
-	  result[++result_top] = input;
-	  lex (&input);
+	  result[++result_top] = *input;
+	  input = yylex();
 	  state[++state_top] = action.num;
 	  break;
 	case REDUCE:
