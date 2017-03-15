@@ -6,7 +6,6 @@
 #include <limits.h>
 
 
-#include "values.h"
 
 typedef enum {
   SHIFT,
@@ -19,6 +18,24 @@ typedef struct {
   action_t action;
   int num;
 } table_t;
+
+typedef enum
+{
+	NUMBER,
+	PLUS,
+	MUL,
+	LPAREN,
+	RPAREN,
+	END,
+	MINUS,
+	DIV,
+} token_t;
+
+typedef struct
+{
+	token_t token;
+	int number;
+} state_t;
 
 void apply(state_t result[], int* result_top, int num)
 {
@@ -52,7 +69,18 @@ void apply(state_t result[], int* result_top, int num)
 static void
 lex (state_t * input)
 {
+	int c2t[256] = 
+	{
+		[0 ... 255] = END,
+		['+'] = PLUS,
+		['*'] = MUL,
+		['('] = LPAREN,
+		[')'] = RPAREN,
+		['-'] = MINUS,
+		['/'] = DIV,
+	};
   int c;
+
 
   input->token = END;
   for (;;)
