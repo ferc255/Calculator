@@ -1,3 +1,4 @@
+#include "values.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +6,9 @@
 #include <ctype.h>
 #include <limits.h>
 
-
+extern int yylex();
+extern int yylineno;
+extern char* yytext;
 
 typedef enum {
   SHIFT,
@@ -19,17 +22,6 @@ typedef struct {
   int num;
 } table_t;
 
-typedef enum
-{
-	NUMBER,
-	PLUS,
-	MUL,
-	LPAREN,
-	RPAREN,
-	END,
-	MINUS,
-	DIV,
-} token_t;
 
 typedef struct
 {
@@ -69,39 +61,11 @@ void apply(state_t result[], int* result_top, int num)
 static void
 lex (state_t * input)
 {
-	int c2t[256] = 
+	input->token = yylex();
+	if (input->token == NUMBER)
 	{
-		[0 ... 255] = END,
-		['+'] = PLUS,
-		['*'] = MUL,
-		['('] = LPAREN,
-		[')'] = RPAREN,
-		['-'] = MINUS,
-		['/'] = DIV,
-	};
-  int c;
-
-
-  input->token = END;
-  for (;;)
-    {
-      c = getchar ();
-      if (EOF == c)
-	break;
-      if (isspace (c))
-	continue;
-      if (isdigit (c))
-	{
-	  ungetc (c, stdin);
-	  fscanf (stdin, "%d", &input->number);
-	  input->token = NUMBER;
-	}
-      else
-	{
-	  input->token = c2t[c];
-	}
-      break;
-    }
+		input->number = atoi(yytext);
+	}	 
 }
 
 bool solve(table_t table[16][8], int trans[16][3])
