@@ -20,5 +20,6 @@ typedef struct
 } state_t;
 
 #define YYSTYPE int
+#define YYTOKENTYPE token_t
 
 #endif /* _VALUES_H_ */
