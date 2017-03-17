@@ -6,8 +6,7 @@
 #include <limits.h>
 
 #include "values.h"
-
-extern state_t* yylex();
+#include "scanner.lex.h"
 
 typedef enum {
   SHIFT,
@@ -53,7 +52,8 @@ void apply(state_t result[], int* result_top, int num)
 
 bool solve(table_t table[16][8], int trans[16][3])
 {
-  state_t* input = yylex();
+  state_t input;
+  input.token = yylex (&input.number);
 
   int state_top = 0;
   int state[100];
@@ -68,12 +68,12 @@ bool solve(table_t table[16][8], int trans[16][3])
   while (1)
     {
       int cur_state = state[state_top];
-      table_t action = table[cur_state][input->token];
+      table_t action = table[cur_state][input.token];
       switch (action.action)
 	{
 	case SHIFT:
-	  result[++result_top] = *input;
-	  input = yylex();
+	  result[++result_top] = input;
+	  input.token = yylex (&input.number);
 	  state[++state_top] = action.num;
 	  break;
 	case REDUCE:

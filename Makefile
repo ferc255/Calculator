@@ -1,6 +1,9 @@
-mys: myLR.c values.h lex.yy.c
-	gcc myLR.c lex.yy.c -ll -o mys 
+myLR: myLR.o scanner.lex.o
 
-lex.yy.c: scanner.l
-	$(LEX) scanner.l
+myLR.c: scanner.lex.h
 
+scanner.lex.c: scanner.l
+	$(LEX) -o $@ $<
+
+scanner.lex.h: scanner.l
+	$(LEX) --header-file=$@ -o $*.lex.c $<	
