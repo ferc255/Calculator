@@ -167,7 +167,7 @@ void add(char* token)
 
 int main()
 {
-	freopen("follow.txt", "r", stdin);
+	//freopen("follow.txt", "r", stdin);
 
 	scanf("%d", &n);
 
