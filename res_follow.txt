@@ -1,0 +1,56 @@
+E
+T
+E1
++
+e
+F
+T1
+*
+(
+)
+id
+
+E
+FIRST: ( id 
+FOLLOW: $ ) 
+
+T
+FIRST: ( id 
+FOLLOW: + $ ) 
+
+E1
+FIRST: + e 
+FOLLOW: $ ) 
+
++
+FIRST: + 
+FOLLOW: ( id 
+
+e
+FIRST: e 
+FOLLOW: $ ) + 
+
+F
+FIRST: ( id 
+FOLLOW: * + $ ) 
+
+T1
+FIRST: * e 
+FOLLOW: + $ ) 
+
+*
+FIRST: * 
+FOLLOW: ( id 
+
+(
+FIRST: ( 
+FOLLOW: ( id 
+
+)
+FIRST: ) 
+FOLLOW: * + $ ) 
+
+id
+FIRST: id 
+FOLLOW: * + $ ) 
+
