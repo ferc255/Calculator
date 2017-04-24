@@ -1,7 +1,7 @@
 YACC=bison
 LEX=flex
 
-all: myLR mycalc
+all: myLR mycalc follow
 
 mycalc: calc.tab.o scanner.lex.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) -o $@
@@ -23,3 +23,6 @@ scanner.lex.c: scanner.l
 
 scanner.lex.h: scanner.l
 	$(LEX) --header-file=$@ -o $*.lex.c $<	
+
+follow: follow.c
+	$(CC) $^ -o $@

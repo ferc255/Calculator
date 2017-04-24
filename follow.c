@@ -8,20 +8,20 @@
 
 #define TERM_COUNT (1 << CHAR_BIT)
 
-typedef enum term_non_term_t {
+typedef enum {
   TERM,
   NON_TERM,
-};
+} term_non_term_t;
 
-typedef enum term_t {
+typedef enum {
   TERM_EMPTY,
   TERM_END,
   TERM_LAST,
-};
+} term_t;
 
-typedef enum non_term_t {
+typedef enum {
   NON_TERM_LAST,
-};
+} non_term_t;
 
 enum {
   TERM_FIRST = TERM_LAST,
@@ -44,7 +44,7 @@ typedef struct rule_element_t {
   union {
     term_t term;
     non_term_t non_term;
-  }
+  };
 } rule_element_t;
 
 typedef struct rule_t {
