@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#define N 10
+#define TOKENS 11
 
 #define TERM_COUNT (1 << CHAR_BIT)
 
@@ -26,6 +26,7 @@ typedef enum
 	NON_TERM_E, // 7
 	NON_TERM_T, 
 	NON_TERM_F, // 9
+	NON_TERM_S,
 } item_t;
 
 typedef struct rule_element_t
@@ -73,11 +74,20 @@ typedef enum
 
 
 
+
 grammar_t grammar =
 {
-	.count = 6,
+	.count = 7,
 	.rules = (rule_t[])
 	{
+		{
+			.left = NON_TERM_S,
+			.rule_size = 1,
+			.rule_elements = (rule_element_t[])
+			{
+				{NON_TERM, NON_TERM_E},
+			},
+		},
 		{
 			.left = NON_TERM_E,
 			.rule_size = 3,
@@ -139,19 +149,6 @@ first_t first;
 follow_t follow;
 rec_state_t used[TERM_COUNT];
 
-
-bool contains(char arr[N][N], int size, char* token)
-{
-	int i;
-	for (i = 0; i < size; i++)
-	{
-		if (strcmp(arr[i], token) == 0)
-		{
-			return true;
-		}
-	}
-	return false;
-}
 
 void calcFirst(rule_element_t token)
 {
@@ -280,7 +277,7 @@ void calcFollow(rule_element_t token)
 		printf("Invalid grammar\n");
 		exit(0);
 	}
-	if (token.item == NON_TERM_E)
+	if (token.item == NON_TERM_S)
 	{
 		follow.follow[token.item].list[0] = TERM_END;
 		follow.follow[token.item].mask[TERM_END] = true;
@@ -351,6 +348,179 @@ void calcFollow(rule_element_t token)
 }
 
 
+
+typedef struct
+{
+	int size;
+	int graph[TERM_COUNT][TERM_COUNT];
+} graph_t;
+
+typedef struct
+{
+	int grammar_num;
+	int position;
+} point_t;
+
+typedef struct
+{
+	int size;
+	point_t list[TERM_COUNT];
+} point_list_t;
+
+typedef struct
+{
+	point_list_t scheme[TERM_COUNT];
+} scheme_t;
+
+graph_t graph;
+scheme_t scheme;
+
+void add_points(int idx)
+{
+	bool added[TERM_COUNT];
+	int i;
+	for (i = 0; i < TERM_COUNT; i++)
+	{
+		added[i] = false;
+	}
+
+	for (i = 0; i < scheme.scheme[idx].size; i++)
+	{
+		point_t point = scheme.scheme[idx].list[i];
+		if (point.position < grammar.rules[point.grammar_num].rule_size  &&
+			grammar.rules[point.grammar_num].
+			rule_elements[point.position].term_non_term	== NON_TERM)
+		{
+			item_t item = grammar.rules[point.grammar_num].
+				rule_elements[point.position].item;
+			if (!added[item])
+			{
+				added[item] = true;
+				int j;
+				for (j = 0; j < grammar.count; j++)
+				{
+					if (grammar.rules[j].left == item)
+					{
+						scheme.scheme[idx].list[scheme.scheme[idx].size]
+							.grammar_num = j;
+						scheme.scheme[idx].list[scheme.scheme[idx].size]
+							.position = 0;
+					
+						scheme.scheme[idx].size++;
+					}
+				}
+			}
+		}
+	}
+}
+
+bool is_equal_states(point_list_t a, point_list_t b)
+{
+	if (a.size != b.size)
+	{
+		return false;
+	}
+
+	int i;
+	for (i = 0; i < a.size; i++)
+	{
+		bool found = false;
+		int j;
+		for (j = 0; j < b.size; j++)
+		{
+			if (a.list[i].grammar_num == b.list[j].grammar_num &&
+				a.list[i].position == b.list[j].position)
+			{
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+		{
+			return false;
+		}
+	}
+
+	//printf(" YES ");
+	return true;
+}
+
+void make_transition(int idx, item_t item)
+{
+	bool found = false;
+	scheme.scheme[graph.size].size = 0;
+	int i;
+	for (i = 0; i < scheme.scheme[idx].size; i++)
+	{
+		point_t point = scheme.scheme[idx].list[i];
+		if (point.position < grammar.rules[point.grammar_num].rule_size &&
+			grammar.rules[point.grammar_num].rule_elements[point.position].
+			item == item)
+		{
+			found = true;
+			scheme.scheme[graph.size].list[scheme.scheme[graph.size].size]
+				.grammar_num = point.grammar_num;
+			scheme.scheme[graph.size].list[scheme.scheme[graph.size].size]
+				.position = point.position + 1;
+			scheme.scheme[graph.size].size++;
+		}
+	}
+
+	if (!found)
+	{
+		return;
+	}
+
+	add_points(graph.size);
+	found = false;
+	for (i = 0; i < graph.size; i++)
+	{
+		if (is_equal_states(scheme.scheme[i], scheme.scheme[graph.size]))
+		{
+			found = true;
+			graph.graph[idx][item] = i;
+			break;
+		}
+	}
+
+	if (!found)
+	{
+		graph.graph[idx][item] = graph.size;
+		graph.size++;
+	}
+
+	//printf("%d", graph.graph[idx][item]);
+}
+
+
+void build_scheme()
+{
+	graph.size = 1;
+	scheme.scheme[0].list[0].grammar_num = 0,
+	scheme.scheme[0].list[0].position = 0;
+	scheme.scheme[0].size = 1;
+	add_points(0);
+	int i;
+	for (i = 0; i < graph.size; i++) //graph.size
+	{
+		int j;
+		for (j = 0; j < TOKENS; j++)
+		{
+			//printf("%d %d: ", i, j);
+	  		make_transition(i, j);
+			//printf("\n");
+			
+		}
+	}
+	//make_transition(0, 7);
+	//make_transition(0, 8);
+	//make_transition(0, 9);
+	//make_transition(0, 3);
+	//make_transition(4, 8);
+	
+}
+
+
 int main()
 {	
 	int i;
@@ -389,8 +559,41 @@ int main()
 			calcFollow(grammar.rules[i].rule_elements[j]);
 		}
 	}
+
+	build_scheme();
+	printf("%d\n", graph.size);
+
+	for (i = 0; i < graph.size; i++)
+	{
+		int j;
+		for (j = 0; j < TOKENS; j++)
+		{
+			printf("%d ", graph.graph[i][j]);
+		}
+		printf("\n");
+	}
 	
-	for (i = 0; i < N; i++)
+	int y = 12;
+	int j;
+	for (j = 0; j < y; j++)
+	{
+		int z;
+		for (z = 0; z < y; z++)
+		{
+			printf("%d,", j);
+		}
+		printf("\n");
+		
+		for (i = 0; i < scheme.scheme[j].size; i++)
+		{
+			printf("%d %d\n", scheme.scheme[j].list[i].grammar_num,
+				   scheme.scheme[j].list[i].position);
+		}
+		printf("\n");
+	}
+
+	/*
+	for (i = 0; i < TOKENS; i++)
 	{
 		printf("%d\nFIRST: ", i);
 		int j;
@@ -406,7 +609,17 @@ int main()
 		}
 
 		printf("\n\n");
-	}
+	}*/
+
+
+
+
+
+
+
+
+
+	
 
 	return 0;
 }
