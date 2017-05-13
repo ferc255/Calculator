@@ -8,13 +8,6 @@
 #include "values.h"
 #include "scanner.lex.h"
 
-typedef enum {
-  SHIFT,
-  REDUCE,
-  ACC,
-  ERR
-} action_t;
-
 typedef struct {
   action_t action;
   int num;
@@ -71,21 +64,21 @@ bool solve(table_t table[16][8], int trans[16][3])
       table_t action = table[cur_state][input.token];
       switch (action.action)
 	{
-	case SHIFT:
+	case AC_SHIFT:
 	  result[++result_top] = input;
 	  input.token = yylex (&input.number);
 	  state[++state_top] = action.num;
 	  break;
-	case REDUCE:
+	case AC_REDUCE:
 	  apply(result, &result_top, action.num);
 	  state_top -= gramma_size[action.num];
 	  cur_state = state[state_top];
 	  state[++state_top] = trans[cur_state][gramma_head[action.num]];
 	  break;
-	case ERR:
+	case AC_ERROR:
 	  printf("ERROR in %d state!\n", cur_state);
 	  return false;
-	case ACC:
+	case AC_ACCEPT:
 	  printf("Answer: %d\n", result[0].number);
 	  return true;
 	}
@@ -97,30 +90,30 @@ int main(void)
   table_t table[16][8] =
     {
       {
-	[NUMBER] = {SHIFT, 5},
-	[PLUS] = {ERR, 0},
-	[MUL] = {ERR, 0},
-	[LPAREN] = {SHIFT, 4},
-	[RPAREN] = {ERR, 0},
-	[END] = {ERR, 0},
-	[MINUS] = {ERR, 0},
-	[DIV] = {ERR, 0},
+	[NUMBER] = {AC_SHIFT, 5},
+	[PLUS] = {AC_ERROR, 0},
+	[MUL] = {AC_ERROR, 0},
+	[LPAREN] = {AC_SHIFT, 4},
+	[RPAREN] = {AC_ERROR, 0},
+	[END] = {AC_ERROR, 0},
+	[MINUS] = {AC_ERROR, 0},
+	[DIV] = {AC_ERROR, 0},
       },
-      {{ERR, 0}, {SHIFT, 6}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ACC, 0}, {SHIFT, 15}, {ERR, 0}},
-      {{ERR, 0}, {REDUCE, 2}, {SHIFT, 7}, {ERR, 0}, {REDUCE, 2}, {REDUCE, 2}, {REDUCE, 2}, {SHIFT, 14}},
-      {{ERR, 0}, {REDUCE, 4}, {REDUCE, 4}, {ERR, 0}, {REDUCE, 4}, {REDUCE, 4}, {REDUCE, 4}, {REDUCE, 4}},
-      {{SHIFT, 5}, {ERR, 0}, {ERR, 0}, {SHIFT, 4}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}},
-      {{ERR, 0}, {REDUCE, 6}, {REDUCE, 6}, {ERR, 0}, {REDUCE, 6}, {REDUCE, 6}, {REDUCE, 6}, {REDUCE, 6}},
-      {{SHIFT, 5}, {ERR, 0}, {ERR, 0}, {SHIFT, 4}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}},
-      {{SHIFT, 5}, {ERR, 0}, {ERR, 0}, {SHIFT, 4}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}},
-      {{ERR, 0}, {SHIFT, 6}, {ERR, 0}, {ERR, 0}, {SHIFT, 11}, {ERR, 0}, {SHIFT, 15}, {ERR, 0}},
-      {{ERR, 0}, {REDUCE, 1}, {SHIFT, 7}, {ERR, 0}, {REDUCE, 1}, {REDUCE, 1}, {REDUCE, 1}, {SHIFT, 14}},
-      {{ERR, 0}, {REDUCE, 3}, {REDUCE, 3}, {ERR, 0}, {REDUCE, 3}, {REDUCE, 3}, {REDUCE, 3}, {REDUCE, 3}},
-      {{ERR, 0}, {REDUCE, 5}, {REDUCE, 5}, {ERR, 0}, {REDUCE, 5}, {REDUCE, 5}, {REDUCE, 5}, {REDUCE, 5}},
-      {{ERR, 0}, {REDUCE, 9}, {REDUCE, 9}, {ERR, 0}, {REDUCE, 9}, {REDUCE, 9}, {REDUCE, 9}, {REDUCE, 9}},
-      {{ERR, 0}, {REDUCE, 7}, {SHIFT, 7}, {ERR, 0}, {REDUCE, 7}, {REDUCE, 7}, {REDUCE, 7}, {SHIFT, 14}},
-      {{SHIFT, 5}, {ERR, 0}, {ERR, 0}, {SHIFT, 4}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}},
-      {{SHIFT, 5}, {ERR, 0}, {ERR, 0}, {SHIFT, 4}, {ERR, 0}, {ERR, 0}, {ERR, 0}, {ERR, 0}}
+      {{AC_ERROR, 0}, {AC_SHIFT, 6}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ACCEPT, 0}, {AC_SHIFT, 15}, {AC_ERROR, 0}},
+      {{AC_ERROR, 0}, {AC_REDUCE, 2}, {AC_SHIFT, 7}, {AC_ERROR, 0}, {AC_REDUCE, 2}, {AC_REDUCE, 2}, {AC_REDUCE, 2}, {AC_SHIFT, 14}},
+      {{AC_ERROR, 0}, {AC_REDUCE, 4}, {AC_REDUCE, 4}, {AC_ERROR, 0}, {AC_REDUCE, 4}, {AC_REDUCE, 4}, {AC_REDUCE, 4}, {AC_REDUCE, 4}},
+      {{AC_SHIFT, 5}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_SHIFT, 4}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ERROR, 0}},
+      {{AC_ERROR, 0}, {AC_REDUCE, 6}, {AC_REDUCE, 6}, {AC_ERROR, 0}, {AC_REDUCE, 6}, {AC_REDUCE, 6}, {AC_REDUCE, 6}, {AC_REDUCE, 6}},
+      {{AC_SHIFT, 5}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_SHIFT, 4}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ERROR, 0}},
+      {{AC_SHIFT, 5}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_SHIFT, 4}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ERROR, 0}},
+      {{AC_ERROR, 0}, {AC_SHIFT, 6}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_SHIFT, 11}, {AC_ERROR, 0}, {AC_SHIFT, 15}, {AC_ERROR, 0}},
+      {{AC_ERROR, 0}, {AC_REDUCE, 1}, {AC_SHIFT, 7}, {AC_ERROR, 0}, {AC_REDUCE, 1}, {AC_REDUCE, 1}, {AC_REDUCE, 1}, {AC_SHIFT, 14}},
+      {{AC_ERROR, 0}, {AC_REDUCE, 3}, {AC_REDUCE, 3}, {AC_ERROR, 0}, {AC_REDUCE, 3}, {AC_REDUCE, 3}, {AC_REDUCE, 3}, {AC_REDUCE, 3}},
+      {{AC_ERROR, 0}, {AC_REDUCE, 5}, {AC_REDUCE, 5}, {AC_ERROR, 0}, {AC_REDUCE, 5}, {AC_REDUCE, 5}, {AC_REDUCE, 5}, {AC_REDUCE, 5}},
+      {{AC_ERROR, 0}, {AC_REDUCE, 9}, {AC_REDUCE, 9}, {AC_ERROR, 0}, {AC_REDUCE, 9}, {AC_REDUCE, 9}, {AC_REDUCE, 9}, {AC_REDUCE, 9}},
+      {{AC_ERROR, 0}, {AC_REDUCE, 7}, {AC_SHIFT, 7}, {AC_ERROR, 0}, {AC_REDUCE, 7}, {AC_REDUCE, 7}, {AC_REDUCE, 7}, {AC_SHIFT, 14}},
+      {{AC_SHIFT, 5}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_SHIFT, 4}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ERROR, 0}},
+      {{AC_SHIFT, 5}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_SHIFT, 4}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ERROR, 0}, {AC_ERROR, 0}}
     };
 
   int trans[16][3] = {

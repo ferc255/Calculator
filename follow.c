@@ -4,75 +4,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#define TOKENS 11
-
-#define TERM_COUNT (1 << CHAR_BIT)
-
-typedef enum
-{
-	TERM,
-	NON_TERM,
-} term_non_term_t;
-
-typedef enum
-{
-	TERM_EMPTY,
-	TERM_END,
-	TERM_ID,
-	TERM_LPAREN,
-	TERM_RPAREN,
-	TERM_PLUS,
-	TERM_MUL,
-	NON_TERM_E, // 7
-	NON_TERM_T, 
-	NON_TERM_F, // 9
-	NON_TERM_S,
-} item_t;
-
-typedef struct rule_element_t
-{
-	term_non_term_t term_non_term;
-	item_t item;
-} rule_element_t;
-
-typedef struct rule_t {
-	item_t left;
-	int rule_size;
-	rule_element_t * rule_elements;
-} rule_t;
-
-typedef struct grammar_t
-{
-	int count;
-	rule_t * rules;
-} grammar_t;
-
-
-typedef struct set_t
-{
-	int list_size;
-	item_t list[TERM_COUNT];
-	bool mask[TERM_COUNT];
-} set_t;
-
-typedef struct first_t
-{
-	set_t first[TERM_COUNT];
-} first_t;
-
-typedef struct follow_t
-{
-	set_t follow[TERM_COUNT];
-} follow_t;
-
-typedef enum
-{
-	NOT_COUNTED,
-	IN_PROGRESS,
-	COUNTED,
-} rec_state_t;
-
-
+#include "values.h"
 
 
 grammar_t grammar =
@@ -150,6 +82,20 @@ follow_t follow;
 rec_state_t used[TERM_COUNT];
 
 
+void merge_sets (set_t * left, set_t * right)
+{
+	int i;
+	for (i = 0; i < right->list_size; i++)
+	{
+		if (right->list[i] != TERM_EMPTY &&
+			!left->mask[right->list[i]])
+		{
+			left->list[left->list_size++] = right->list[i];
+			left->mask[right->list[i]] = true;
+		}
+	}
+}
+
 void calcFirst(rule_element_t token)
 {
 	if (used[token.item] == COUNTED)
@@ -189,21 +135,7 @@ void calcFirst(rule_element_t token)
 				
 				calcFirst(grammar.rules[i].rule_elements[j]);
 				item_t neigh = grammar.rules[i].rule_elements[j].item;
-				int z;
-				for (z = 0; z < first.first[neigh].list_size; z++)
-				{
-					if (first.first[neigh].list[z] != TERM_EMPTY &&
-						!first.first[token.item].
-						mask[first.first[neigh].list[z]])
-					{
-						first.first[token.item].list[first.
-							first[token.item].list_size] =
-								first.first[neigh].list[z];
-						first.first[token.item].mask[first.first[neigh].
-							list[z]] = true;
-						first.first[token.item].list_size++;
-					}
-				}
+				merge_sets (&first.first[token.item], &first.first[neigh]);
 
 				if (!first.first[neigh].mask[TERM_EMPTY])
 				{
@@ -217,50 +149,34 @@ void calcFirst(rule_element_t token)
 				mask[TERM_EMPTY])
 			{
 				first.first[token.item].list[first.
-					first[token.item].list_size] = TERM_EMPTY;
+					first[token.item].list_size++] = TERM_EMPTY;
 				first.first[token.item].mask[TERM_EMPTY] = true;
-				first.first[token.item].list_size++;
 			}				
 		}
 	}
 
-
-
-	for (i = 0; i < grammar.count; i++)
-	{
-		if (grammar.rules[i].left == token.item)
+	if (first.first[token.item].mask[TERM_EMPTY])
+		for (i = 0; i < grammar.count; i++)
 		{
-			int j;
-			for (j = 0; j < grammar.rules[i].rule_size; j++)
+			if (grammar.rules[i].left == token.item)
 			{
-				if (grammar.rules[i].rule_elements[j].item != token.item)
+				int j;
+				for (j = 0; j < grammar.rules[i].rule_size; j++)
 				{
-					calcFirst(grammar.rules[i].rule_elements[j]);
-				}
-				item_t neigh = grammar.rules[i].rule_elements[j].item;
-				int z;
-				for (z = 0; z < first.first[neigh].list_size; z++)
-				{
-					if (first.first[neigh].list[z] != TERM_EMPTY &&
-						!first.first[token.item].
-						mask[first.first[neigh].list[z]])
+					if (grammar.rules[i].rule_elements[j].item != token.item)
 					{
-						first.first[token.item].list[first.
-							first[token.item].list_size] =
-								first.first[neigh].list[z];
-						first.first[token.item].mask[first.first[neigh].
-							list[z]] = true;
-						first.first[token.item].list_size++;
+						calcFirst(grammar.rules[i].rule_elements[j]);
 					}
-				}
-
-				if (!first.first[neigh].mask[TERM_EMPTY])
-				{
-					break;
+					item_t neigh = grammar.rules[i].rule_elements[j].item;
+					merge_sets (&first.first[token.item], &first.first[neigh]);
+	
+					if (!first.first[neigh].mask[TERM_EMPTY])
+					{
+						break;
+					}
 				}
 			}
 		}
-	}
 
 	used[token.item] = COUNTED;
 }
@@ -288,60 +204,36 @@ void calcFollow(rule_element_t token)
 	int i;
 	for (i = 0; i < grammar.count; i++)
 	{
+		bool contain_self = false;
 		int j;
 		for (j = 0; j < grammar.rules[i].rule_size; j++)
 		{
 			if (grammar.rules[i].rule_elements[j].item == token.item)
 			{
-				bool found = false;
-				int w = 0;
-				for (w = j + 1; w < grammar.rules[i].rule_size; w++)
-				{
-					item_t neigh = grammar.rules[i].rule_elements[w].item;
-					int z;
-					for (z = 0; z < first.first[neigh].list_size; z++)
-					{
-						if (first.first[neigh].list[z] != TERM_EMPTY &&
-							!follow.follow[token.item].
-							mask[first.first[neigh].list[z]])
-						{
-							follow.follow[token.item].list[follow.
-								follow[token.item].list_size] =
-									first.first[neigh].list[z];
-							follow.follow[token.item].mask[first.
-								first[neigh].list[z]] = true;
-							follow.follow[token.item].list_size++;
-						}
-					}
-
-					if (!first.first[neigh].mask[TERM_EMPTY])
-					{
-						found = true;
-						break;
-					}							
-				}
-
-				if (!found && grammar.rules[i].left != token.item)
-				{
-					rule_element_t aux = {NON_TERM, grammar.rules[i].left};
-					calcFollow(aux);
-					item_t neigh = grammar.rules[i].left;
-					int z;
-					for (z = 0; z < follow.follow[neigh].list_size; z++)
-					{
-						if (!follow.follow[token.item].
-							mask[follow.follow[neigh].list[z]])
-						{
-							follow.follow[token.item].list[follow.
-								follow[token.item].list_size] =
-									follow.follow[neigh].list[z];
-							follow.follow[token.item].mask[follow.
-								follow[neigh].list[z]] = true;
-							follow.follow[token.item].list_size++;
-						}
-					}
-				}
+				contain_self = true;
+				break;
 			}
+		}
+		
+		bool has_nonempty = false;
+		for (j = j + 1; j < grammar.rules[i].rule_size; j++)
+		{
+			item_t neigh = grammar.rules[i].rule_elements[j].item;
+			merge_sets(&follow.follow[token.item], &first.first[neigh]);
+
+			if (!first.first[neigh].mask[TERM_EMPTY])
+			{
+				has_nonempty = true;
+				break;
+			}
+		}
+
+		if (contain_self && !has_nonempty && grammar.rules[i].left != token.item)
+		{
+			rule_element_t left = {NON_TERM, grammar.rules[i].left};
+			calcFollow(left);
+			item_t neigh = grammar.rules[i].left;
+			merge_sets(&follow.follow[token.item], &follow.follow[neigh]);
 		}
 	}
 	used[token.item] = COUNTED;
@@ -349,28 +241,7 @@ void calcFollow(rule_element_t token)
 
 
 
-typedef struct
-{
-	int size;
-	int graph[TERM_COUNT][TERM_COUNT];
-} graph_t;
 
-typedef struct
-{
-	int grammar_num;
-	int position;
-} point_t;
-
-typedef struct
-{
-	int size;
-	point_t list[TERM_COUNT];
-} point_list_t;
-
-typedef struct
-{
-	point_list_t scheme[TERM_COUNT];
-} scheme_t;
 
 graph_t graph;
 scheme_t scheme;
@@ -412,6 +283,7 @@ void add_points(int idx)
 			}
 		}
 	}
+	// qsort (array, count, elem_size, comparator);
 }
 
 bool is_equal_states(point_list_t a, point_list_t b)
@@ -420,7 +292,7 @@ bool is_equal_states(point_list_t a, point_list_t b)
 	{
 		return false;
 	}
-
+	// linear compare of sorted arrays
 	int i;
 	for (i = 0; i < a.size; i++)
 	{
@@ -512,14 +384,76 @@ void build_scheme()
 			
 		}
 	}
-	//make_transition(0, 7);
-	//make_transition(0, 8);
-	//make_transition(0, 9);
-	//make_transition(0, 3);
-	//make_transition(4, 8);
 	
 }
 
+void build_automaton(action_table_t* action_table, goto_table_t* goto_table)
+{
+	action_table->size = graph.size;
+	
+	int i;
+	for (i = 0; i < graph.size; i++)
+	{
+		int j;
+		for (j = 0; j < TOKENS; j++)
+		{
+			if (graph.graph[i][j] == 0)
+			{
+				action_table->action[i][j].action = AC_ERROR;
+			}
+			else
+			{
+				action_table->action[i][j].action = AC_GOTO;
+				action_table->action[i][j].num = graph.graph[i][j];
+			}
+		}
+	}
+	
+	
+	
+	for (i = 0; i < graph.size; i++)
+	{
+		int j;
+		for (j = 0; j < scheme.scheme[i].size; j++)
+		{
+			point_t* point = &scheme.scheme[i].list[j];
+			rule_t* rule = &grammar.rules[point->grammar_num];
+			if (point->position == rule->rule_size)
+			{
+				if (point->grammar_num == 0)
+				{
+					action_table->action[i][TERM_END].action = AC_ACCEPT;
+				}
+				else
+				{
+					int k;
+					for (k = 0; k < follow.follow[rule->left].list_size; k++)
+					{
+						item_t item = follow.follow[rule->left].list[k];
+						action_table->action[i][item].action = AC_REDUCE;
+						action_table->action[i][item].num = point->grammar_num;
+					}
+				}
+			}
+			else
+			{
+				item_t item = grammar.rules[point->grammar_num].rule_elements[point->position].item;
+				action_table->action[i][item].action = AC_SHIFT;
+				action_table->action[i][item].num = graph.graph[i][item];
+			}
+		}
+	}
+	
+	goto_table->size = graph.size;
+	for (i = 0; i < graph.size; i++)
+	{
+		int j;
+		for (j = 0; j < TOKENS; j++)
+		{
+			goto_table->goto_table[i][j] = graph.graph[i][j];
+		}
+	}
+}
 
 int main()
 {	
@@ -561,6 +495,38 @@ int main()
 	}
 
 	build_scheme();
+	
+	action_table_t action_table;
+	goto_table_t goto_table;
+	build_automaton(&action_table, &goto_table);
+	
+	for (i = 0; i < action_table.size; i++)
+	{
+		int j;
+		for (j = 0; j < TOKENS; j++)
+		{
+			switch (action_table.action[i][j].action)
+			{
+				case AC_ERROR:
+					printf("err ");
+					break;
+				case AC_ACCEPT:
+					printf("acc ");
+					break;
+				case AC_SHIFT:
+					printf("s%02d ", action_table.action[i][j].num);
+					break;
+				case AC_REDUCE:
+					printf("r%02d ", action_table.action[i][j].num);
+					break;
+				case AC_GOTO:
+					printf("g%02d ", action_table.action[i][j].num);
+					break;
+			}
+		}
+		printf("\n");	
+	}
+	
 	printf("%d\n", graph.size);
 
 	for (i = 0; i < graph.size; i++)
