@@ -438,7 +438,7 @@ void build_automaton(action_table_t* action_table, goto_table_t* goto_table)
 			else
 			{
 				item_t item = grammar.rules[point->grammar_num].rule_elements[point->position].item;
-				action_table->action[i][item].action = AC_SHIFT;
+				action_table->action[i][item].action = AC_SHIFT; // It could rewrite AC_GOTO
 				action_table->action[i][item].num = graph.graph[i][item];
 			}
 		}
@@ -499,34 +499,57 @@ int main()
 	action_table_t action_table;
 	goto_table_t goto_table;
 	build_automaton(&action_table, &goto_table);
-	
+
+	printf(".trans = (table_t*[])\n{\n");	
 	for (i = 0; i < action_table.size; i++)
 	{
+		printf("\t(table_t[])\n\t{\n");
 		int j;
 		for (j = 0; j < TOKENS; j++)
 		{
+			printf("\t\t{");
 			switch (action_table.action[i][j].action)
 			{
 				case AC_ERROR:
-					printf("err ");
+					printf("AC_ERROR, 0");
 					break;
 				case AC_ACCEPT:
-					printf("acc ");
+					printf("AC_ACCEPT, 0");
 					break;
 				case AC_SHIFT:
-					printf("s%02d ", action_table.action[i][j].num);
+					printf("AC_SHIFT, %d", action_table.action[i][j].num);
 					break;
 				case AC_REDUCE:
-					printf("r%02d ", action_table.action[i][j].num);
+					printf("AC_REDUCE, %d", action_table.action[i][j].num);
 					break;
 				case AC_GOTO:
-					printf("g%02d ", action_table.action[i][j].num);
+					printf("AC_GOTO, %d", action_table.action[i][j].num);
 					break;
 			}
+			printf("},\n");
 		}
-		printf("\n");	
+		printf("\t},\n");	
+	}
+
+	printf("},\n.grammar_left = (item_t[])\n{\n\t");
+	for (i = 0; i < grammar.count; i++)
+	{
+		printf("%d, ", grammar.rules[i].left);
 	}
 	
+	printf("\n},\n.grammar_size = (int[])\n{\n\t");
+	for (i = 0; i < grammar.count; i++)
+	{
+		printf("%d, ", grammar.rules[i].rule_size);
+	}
+	printf("\n}\n");
+   
+
+
+
+
+	
+	/*
 	printf("%d\n", graph.size);
 
 	for (i = 0; i < graph.size; i++)
@@ -558,7 +581,7 @@ int main()
 		printf("\n");
 	}
 
-	/*
+
 	for (i = 0; i < TOKENS; i++)
 	{
 		printf("%d\nFIRST: ", i);
