@@ -1,17 +1,22 @@
 #ifndef _VALUES_H_
 #define _VALUES_H_
 
+
 typedef enum
 {
-  NUMBER,
-  PLUS,
-  MUL,
-  LPAREN,
-  RPAREN,
-  END,
-  MINUS,
-  DIV,
-} token_t;
+	TERM_EMPTY,
+	TERM_END,
+	TERM_ID,
+	TERM_LPAREN,
+	TERM_RPAREN,
+	TERM_PLUS,
+	TERM_MUL,
+	NON_TERM_E, // 7
+	NON_TERM_T, 
+	NON_TERM_F, // 9
+	NON_TERM_S,
+	TOKENS,
+} item_t;
 
 typedef enum
 {
@@ -29,10 +34,16 @@ typedef struct {
 
 typedef struct
 {
-  token_t token;
+  item_t token;
   int number;
 } state_t;
 
+typedef struct
+{
+	table_t** trans;
+	item_t* grammar_left;
+	int* grammar_size;
+} tables_t;
 
 #define TERM_COUNT (1 << CHAR_BIT)
 
@@ -42,21 +53,6 @@ typedef enum
 	NON_TERM,
 } term_non_term_t;
 
-typedef enum
-{
-	TERM_EMPTY,
-	TERM_END,
-	TERM_ID,
-	TERM_LPAREN,
-	TERM_RPAREN,
-	TERM_PLUS,
-	TERM_MUL,
-	NON_TERM_E, // 7
-	NON_TERM_T, 
-	NON_TERM_F, // 9
-	NON_TERM_S,
-	TOKENS,
-} item_t;
 
 typedef struct rule_element_t
 {

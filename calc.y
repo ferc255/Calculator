@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <complex.h>
+#include <stdbool.h>
+#include <limits.h>
 
 #include "values.h"
 #include "scanner.lex.h"

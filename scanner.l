@@ -1,6 +1,8 @@
 %option never-interactive noyywrap bison-bridge
 %{
 #include <stdio.h>
+#include <limits.h>
+#include <stdbool.h>
 
 #include "values.h"
 %}
@@ -10,14 +12,12 @@
 [[:space:]]+	;
 [[:digit:]]+  {
   *yylval = atoi (yytext);
-  return (NUMBER);
+  return (TERM_ID);
 }
-"+"	return (PLUS); 
-"-"	return (MINUS); 
-"*"	return (MUL); 
-"/"	return (DIV);
-"("	return (LPAREN); 
-")"	return (RPAREN);
-.       return (END);
+"+"	return (TERM_PLUS); 
+"*"	return (TERM_MUL); 
+"("	return (TERM_LPAREN); 
+")"	return (TERM_RPAREN);
+.       return (TERM_END);
 
 %%

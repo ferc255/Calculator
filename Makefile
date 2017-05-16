@@ -1,7 +1,7 @@
 YACC=bison
 LEX=flex
 
-all: myLR mycalc follow
+all: myLR #mycalc
 
 mycalc: calc.tab.o scanner.lex.o
 	$(CC) $^ $(LOADLIBES) $(LDLIBS) -o $@
@@ -13,9 +13,12 @@ calc.tab.o: calc.tab.c
 .y.tab.c:
 	$(YACC) $<
 	 
-myLR: myLR.o scanner.lex.o
+myLR: myLR.o scanner.lex.o 
 
-myLR.c: scanner.lex.h
+build_result.h: follow
+	./$^ > $@
+
+myLR.c: scanner.lex.h build_result.h
 
 scanner.lex.c: scanner.l
 	$(LEX) -o $@ $<
