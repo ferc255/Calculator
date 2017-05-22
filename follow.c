@@ -22,6 +22,7 @@ void init_set(set_t* set)
 	}
 }
 
+
 void merge_sets(set_t * left, set_t * right)
 {
 	int i;
@@ -35,6 +36,7 @@ void merge_sets(set_t * left, set_t * right)
 		}
 	}
 }
+
 
 void calc_first(item_t token, grammar_t* grammar, rec_state_t* used,
 				first_t* first, term_non_term_t* term_non_term)
@@ -195,6 +197,7 @@ int comparator(const void* f, const void* s)
 	return a->position - b->position;
 }
 
+
 void add_points(int idx, grammar_t* grammar, scheme_t* scheme,
 				term_non_term_t* term_non_term)
 {
@@ -238,6 +241,7 @@ void add_points(int idx, grammar_t* grammar, scheme_t* scheme,
 		  sizeof(point_t), comparator);
 }
 
+
 bool is_equal_states(point_list_t a, point_list_t b)
 {
 	if (a.size != b.size)
@@ -257,6 +261,7 @@ bool is_equal_states(point_list_t a, point_list_t b)
 
 	return true;
 }
+
 
 void make_transition(int idx, item_t item, grammar_t* grammar, graph_t* graph,
 					 scheme_t* scheme, term_non_term_t* term_non_term)
@@ -323,6 +328,7 @@ void build_scheme(grammar_t* grammar, graph_t* graph, scheme_t* scheme,
 		}
 	}	
 }
+
 
 void build_automaton(action_table_t* action_table, grammar_t* grammar,
 					 follow_t* follow, graph_t* graph, scheme_t* scheme)
@@ -561,10 +567,6 @@ int main()
 					&scheme);
 
 	write_tables(&action_table, &grammar);
-
-
-
-
 
 	return 0;
 }
