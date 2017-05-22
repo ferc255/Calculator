@@ -53,16 +53,10 @@ typedef enum
 } term_non_term_t;
 
 
-typedef struct rule_element_t
-{
-	term_non_term_t term_non_term;
-	item_t item;
-} rule_element_t;
-
 typedef struct rule_t {
 	item_t left;
 	int rule_size;
-	rule_element_t * rule_elements;
+	item_t* rule_elements;
 } rule_t;
 
 typedef struct grammar_t
@@ -129,13 +123,6 @@ typedef struct
 	int size;
 	table_t action[TERM_COUNT][TERM_COUNT];
 } action_table_t;
-
-typedef struct
-{
-	int size;
-	state_id_t goto_table[TERM_COUNT][TERM_COUNT];
-} goto_table_t;
-
 
 #define YYSTYPE int
 #define YYTOKENTYPE token_t

@@ -36,48 +36,48 @@ void merge_sets(set_t * left, set_t * right)
 	}
 }
 
-void calcFirst(rule_element_t token, grammar_t* grammar, rec_state_t* used,
-	first_t* first)
+void calc_first(item_t token, grammar_t* grammar, rec_state_t* used,
+				first_t* first, term_non_term_t* term_non_term)
 {
-	if (used[token.item] == COUNTED)
+	if (used[token] == COUNTED)
 	{
 		return;
 	}
-	if (used[token.item] == IN_PROGRESS)
+	if (used[token] == IN_PROGRESS)
 	{
 		printf("Invalid grammar\n");
 		exit(0);
 	}
-	if (token.term_non_term == TERM)
+	if (term_non_term[token] == TERM)
 	{
-		first->first[token.item].list[0] = token.item;
-		first->first[token.item].mask[token.item] = true;
-		first->first[token.item].list_size = 1;
-		used[token.item] = COUNTED;
+		first->first[token].list[0] = token;
+		first->first[token].mask[token] = true;
+		first->first[token].list_size = 1;
+		used[token] = COUNTED;
 		return;
 	}
 
-	used[token.item] = IN_PROGRESS;
+	used[token] = IN_PROGRESS;
 	int i;
 	for (i = 0; i < grammar->count; i++)
 	{
-		if (grammar->rules[i].left == token.item)
+		if (grammar->rules[i].left == token)
 		{
 			bool found = false;
 			int j;
 			
 			for (j = 0; j < grammar->rules[i].rule_size; j++)
 			{
-				if (grammar->rules[i].rule_elements[j].item == token.item)
+				if (grammar->rules[i].rule_elements[j] == token)
 				{
 					found = true;
 					break;
 				}
 				
-				calcFirst(grammar->rules[i].rule_elements[j], grammar, used,
-					first);
-				item_t neigh = grammar->rules[i].rule_elements[j].item;
-				merge_sets (&first->first[token.item], &first->first[neigh]);
+				calc_first(grammar->rules[i].rule_elements[j], grammar, used,
+						   first, term_non_term);
+				item_t neigh = grammar->rules[i].rule_elements[j];
+				merge_sets (&first->first[token], &first->first[neigh]);
 
 				if (!first->first[neigh].mask[TERM_EMPTY])
 				{
@@ -87,31 +87,31 @@ void calcFirst(rule_element_t token, grammar_t* grammar, rec_state_t* used,
 			}
 
 
-			if (!found && !first->first[token.item].
+			if (!found && !first->first[token].
 				mask[TERM_EMPTY])
 			{
-				first->first[token.item].list[first->
-					first[token.item].list_size++] = TERM_EMPTY;
-				first->first[token.item].mask[TERM_EMPTY] = true;
+				first->first[token].list[first->
+					first[token].list_size++] = TERM_EMPTY;
+				first->first[token].mask[TERM_EMPTY] = true;
 			}				
 		}
 	}
 
-	if (first->first[token.item].mask[TERM_EMPTY])
+	if (first->first[token].mask[TERM_EMPTY])
 		for (i = 0; i < grammar->count; i++)
 		{
-			if (grammar->rules[i].left == token.item)
+			if (grammar->rules[i].left == token)
 			{
 				int j;
 				for (j = 0; j < grammar->rules[i].rule_size; j++)
 				{
-					if (grammar->rules[i].rule_elements[j].item != token.item)
+					if (grammar->rules[i].rule_elements[j] != token)
 					{
-						calcFirst(grammar->rules[i].rule_elements[j], grammar,
-								  used, first);
+						calc_first(grammar->rules[i].rule_elements[j], grammar,
+								   used, first, term_non_term);
 					}
-					item_t neigh = grammar->rules[i].rule_elements[j].item;
-					merge_sets (&first->first[token.item], &first->first[neigh]);
+					item_t neigh = grammar->rules[i].rule_elements[j];
+					merge_sets (&first->first[token], &first->first[neigh]);
 	
 					if (!first->first[neigh].mask[TERM_EMPTY])
 					{
@@ -121,30 +121,30 @@ void calcFirst(rule_element_t token, grammar_t* grammar, rec_state_t* used,
 			}
 		}
 
-	used[token.item] = COUNTED;
+	used[token] = COUNTED;
 }
 
 
-void calcFollow(rule_element_t token, grammar_t* grammar, rec_state_t* used,
-				first_t* first, follow_t* follow)
+void calc_follow(item_t token, grammar_t* grammar, rec_state_t* used,
+				 first_t* first, follow_t* follow)
 {
-	if (used[token.item] == COUNTED)
+	if (used[token] == COUNTED)
 	{
 		return;
 	}
-	if (used[token.item] == IN_PROGRESS)
+	if (used[token] == IN_PROGRESS)
 	{
 		printf("Invalid grammar\n");
 		exit(0);
 	}
-	if (token.item == NON_TERM_S)
+	if (token == NON_TERM_S)
 	{
-		follow->follow[token.item].list[0] = TERM_END;
-		follow->follow[token.item].mask[TERM_END] = true;
-		follow->follow[token.item].list_size = 1;
+		follow->follow[token].list[0] = TERM_END;
+		follow->follow[token].mask[TERM_END] = true;
+		follow->follow[token].list_size = 1;
 	}
 
-	used[token.item] = IN_PROGRESS;
+	used[token] = IN_PROGRESS;
 	int i;
 	for (i = 0; i < grammar->count; i++)
 	{
@@ -152,7 +152,7 @@ void calcFollow(rule_element_t token, grammar_t* grammar, rec_state_t* used,
 		int j;
 		for (j = 0; j < grammar->rules[i].rule_size; j++)
 		{
-			if (grammar->rules[i].rule_elements[j].item == token.item)
+			if (grammar->rules[i].rule_elements[j] == token)
 			{
 				contain_self = true;
 				break;
@@ -162,8 +162,8 @@ void calcFollow(rule_element_t token, grammar_t* grammar, rec_state_t* used,
 		bool has_nonempty = false;
 		for (j = j + 1; j < grammar->rules[i].rule_size; j++)
 		{
-			item_t neigh = grammar->rules[i].rule_elements[j].item;
-			merge_sets(&follow->follow[token.item], &first->first[neigh]);
+			item_t neigh = grammar->rules[i].rule_elements[j];
+			merge_sets(&follow->follow[token], &first->first[neigh]);
 
 			if (!first->first[neigh].mask[TERM_EMPTY])
 			{
@@ -172,15 +172,14 @@ void calcFollow(rule_element_t token, grammar_t* grammar, rec_state_t* used,
 			}
 		}
 
-		if (contain_self && !has_nonempty && grammar->rules[i].left != token.item)
+		if (contain_self && !has_nonempty && grammar->rules[i].left != token)
 		{
-			rule_element_t left = {NON_TERM, grammar->rules[i].left};
-			calcFollow(left, grammar, used, first, follow);
-			item_t neigh = grammar->rules[i].left;
-			merge_sets(&follow->follow[token.item], &follow->follow[neigh]);
+			item_t left = grammar->rules[i].left;
+			calc_follow(left, grammar, used, first, follow);
+			merge_sets(&follow->follow[token], &follow->follow[left]);
 		}
 	}
-	used[token.item] = COUNTED;
+	used[token] = COUNTED;
 }
 
 
@@ -188,14 +187,16 @@ int comparator(const void* f, const void* s)
 {
 	point_t* a = ((point_t*) f);
 	point_t* b = ((point_t*) s);
-	if (a->grammar_num != b->grammar_num)
+	int div = a->grammar_num - b->grammar_num;
+	if (div)
 	{
-		return a->grammar_num - b->grammar_num;
+		return div;
 	}
 	return a->position - b->position;
 }
 
-void add_points(int idx, grammar_t* grammar, scheme_t* scheme)
+void add_points(int idx, grammar_t* grammar, scheme_t* scheme,
+				term_non_term_t* term_non_term)
 {
 	bool added[TERM_COUNT];
 	int i;
@@ -207,12 +208,12 @@ void add_points(int idx, grammar_t* grammar, scheme_t* scheme)
 	for (i = 0; i < scheme->scheme[idx].size; i++)
 	{
 		point_t point = scheme->scheme[idx].list[i];
-		if (point.position < grammar->rules[point.grammar_num].rule_size  &&
-			grammar->rules[point.grammar_num].
-			rule_elements[point.position].term_non_term	== NON_TERM)
+		if (point.position < grammar->rules[point.grammar_num].rule_size &&
+			term_non_term[grammar->rules[point.grammar_num].
+			rule_elements[point.position]] == NON_TERM)
 		{
 			item_t item = grammar->rules[point.grammar_num].
-				rule_elements[point.position].item;
+				rule_elements[point.position];
 			if (!added[item])
 			{
 				added[item] = true;
@@ -258,7 +259,7 @@ bool is_equal_states(point_list_t a, point_list_t b)
 }
 
 void make_transition(int idx, item_t item, grammar_t* grammar, graph_t* graph,
-	scheme_t* scheme)
+					 scheme_t* scheme, term_non_term_t* term_non_term)
 {
 	bool found = false;
 	scheme->scheme[graph->size].size = 0;
@@ -267,8 +268,8 @@ void make_transition(int idx, item_t item, grammar_t* grammar, graph_t* graph,
 	{
 		point_t point = scheme->scheme[idx].list[i];
 		if (point.position < grammar->rules[point.grammar_num].rule_size &&
-			grammar->rules[point.grammar_num].rule_elements[point.position].
-			item == item)
+			grammar->rules[point.grammar_num].
+			rule_elements[point.position] == item)
 		{
 			found = true;
 			scheme->scheme[graph->size].list[scheme->scheme[graph->size].size]
@@ -284,7 +285,7 @@ void make_transition(int idx, item_t item, grammar_t* grammar, graph_t* graph,
 		return;
 	}
 
-	add_points(graph->size, grammar, scheme);
+	add_points(graph->size, grammar, scheme, term_non_term);
 	found = false;
 	for (i = 0; i < graph->size; i++)
 	{
@@ -304,27 +305,27 @@ void make_transition(int idx, item_t item, grammar_t* grammar, graph_t* graph,
 }
 
 
-void build_scheme(grammar_t* grammar, graph_t* graph, scheme_t* scheme)
+void build_scheme(grammar_t* grammar, graph_t* graph, scheme_t* scheme,
+				  term_non_term_t* term_non_term)
 {
 	graph->size = 1;
 	scheme->scheme[0].list[0].grammar_num = 0,
 	scheme->scheme[0].list[0].position = 0;
 	scheme->scheme[0].size = 1;
-	add_points(0, grammar, scheme);
+	add_points(0, grammar, scheme, term_non_term);
 	int i;
 	for (i = 0; i < graph->size; i++) 
 	{
 		int j;
 		for (j = 0; j < TOKENS; j++)
 		{
-	  		make_transition(i, j, grammar, graph, scheme);
+	  		make_transition(i, j, grammar, graph, scheme, term_non_term);
 		}
 	}	
 }
 
-void build_automaton(action_table_t* action_table, goto_table_t* goto_table,
-					 grammar_t* grammar, follow_t* follow, graph_t* graph,
-					 scheme_t* scheme)
+void build_automaton(action_table_t* action_table, grammar_t* grammar,
+					 follow_t* follow, graph_t* graph, scheme_t* scheme)
 {
 	action_table->size = graph->size;
 	
@@ -375,23 +376,63 @@ void build_automaton(action_table_t* action_table, goto_table_t* goto_table,
 			else
 			{
 				item_t item = grammar->rules[point->grammar_num].
-					rule_elements[point->position].item;
+					rule_elements[point->position];
 				action_table->action[i][item].action = AC_SHIFT; 
 				action_table->action[i][item].num = graph->graph[i][item];
 			}
 		}
 	}
-	
-	goto_table->size = graph->size;
-	for (i = 0; i < graph->size; i++)
+}
+
+
+void write_tables(action_table_t* action_table, grammar_t* grammar)
+{
+	printf(".trans = (table_t*[])\n{\n");
+	int i;
+	for (i = 0; i < action_table->size; i++)
 	{
+		printf("\t(table_t[])\n\t{\n");
 		int j;
 		for (j = 0; j < TOKENS; j++)
 		{
-			goto_table->goto_table[i][j] = graph->graph[i][j];
+			printf("\t\t{");
+			switch (action_table->action[i][j].action)
+			{
+				case AC_ERROR:
+					printf("AC_ERROR, 0");
+					break;
+				case AC_ACCEPT:
+					printf("AC_ACCEPT, 0");
+					break;
+				case AC_SHIFT:
+					printf("AC_SHIFT, %d", action_table->action[i][j].num);
+					break;
+				case AC_REDUCE:
+					printf("AC_REDUCE, %d", action_table->action[i][j].num);
+					break;
+				case AC_GOTO:
+					printf("AC_GOTO, %d", action_table->action[i][j].num);
+					break;
+			}
+			printf("},\n");
 		}
+		printf("\t},\n");	
 	}
+
+	printf("},\n.grammar_left = (item_t[])\n{\n\t");
+	for (i = 0; i < grammar->count; i++)
+	{
+		printf("%d, ", grammar->rules[i].left);
+	}
+	
+	printf("\n},\n.grammar_size = (int[])\n{\n\t");
+	for (i = 0; i < grammar->count; i++)
+	{
+		printf("%d, ", grammar->rules[i].rule_size);
+	}
+	printf("\n}\n");
 }
+
 
 int main()
 {
@@ -403,66 +444,74 @@ int main()
 			{
 				.left = NON_TERM_S,
 				.rule_size = 1,
-				.rule_elements = (rule_element_t[])
+				.rule_elements = (item_t[])
 				{
-					{NON_TERM, NON_TERM_E},
+					NON_TERM_E,
 				},
 			},
 			{
 				.left = NON_TERM_E,
 				.rule_size = 3,
-				.rule_elements = (rule_element_t[])
+				.rule_elements = (item_t[])
 				{
-					{NON_TERM, NON_TERM_E},
-					{TERM, TERM_PLUS},
-					{NON_TERM, NON_TERM_T},
+					NON_TERM_E,	TERM_PLUS, NON_TERM_T,
 				},
 			},
 			{
 				.left = NON_TERM_E,
 				.rule_size = 1,
-				.rule_elements = (rule_element_t[])
+				.rule_elements = (item_t[])
 				{
-					{NON_TERM, NON_TERM_T},
+					NON_TERM_T,
 				},
 			},
 			{
 				.left = NON_TERM_T,
 				.rule_size = 3,
-				.rule_elements = (rule_element_t[])
+				.rule_elements = (item_t[])
 				{
-					{NON_TERM, NON_TERM_T},
-					{TERM, TERM_MUL},
-					{NON_TERM, NON_TERM_F},
+					NON_TERM_T, TERM_MUL, NON_TERM_F,
 				},
 			},
 			{
 				.left = NON_TERM_T,
 				.rule_size = 1,
-				.rule_elements = (rule_element_t[])
+				.rule_elements = (item_t[])
 				{
-					{NON_TERM, NON_TERM_F},
+					NON_TERM_F,
 				},
 			},
 			{
 				.left = NON_TERM_F,
 				.rule_size = 3,
-				.rule_elements = (rule_element_t[])
+				.rule_elements = (item_t[])
 				{
-					{TERM, TERM_LPAREN},
-					{NON_TERM, NON_TERM_E},
-					{TERM, TERM_RPAREN},
+					TERM_LPAREN, NON_TERM_E, TERM_RPAREN,
 				},
 			},
 			{
 				.left = NON_TERM_F,
 				.rule_size = 1,
-				.rule_elements = (rule_element_t[])
+				.rule_elements = (item_t[])
 				{
-					{TERM, TERM_ID},
+					TERM_ID,
 				},
 			},
 		}
+	};
+	term_non_term_t* term_non_term = (term_non_term_t[])
+	{
+		TERM,
+		TERM,
+		TERM,
+		TERM,
+		TERM,
+		TERM,
+		TERM,
+		NON_TERM,
+		NON_TERM,
+		NON_TERM,
+		NON_TERM,
 	};
 
 	int i;
@@ -484,7 +533,8 @@ int main()
 		int j;
 		for (j = 0; j < grammar.rules[i].rule_size; j++)
 		{
-			calcFirst(grammar.rules[i].rule_elements[j], &grammar, used, &first);
+			calc_first(grammar.rules[i].rule_elements[j], &grammar, used,
+					   &first, term_non_term);
 		}
 	}
 
@@ -497,64 +547,21 @@ int main()
 		int j;
 		for (j = 0; j < grammar.rules[i].rule_size; j++)
 		{
-			calcFollow(grammar.rules[i].rule_elements[j], &grammar, used,
+			calc_follow(grammar.rules[i].rule_elements[j], &grammar, used,
 					   &first, &follow);
 		}
 	}
 
 	graph_t graph;
 	scheme_t scheme;
-	build_scheme(&grammar, &graph, &scheme);
+	build_scheme(&grammar, &graph, &scheme, term_non_term);
 	
 	action_table_t action_table;
-	goto_table_t goto_table;
-	build_automaton(&action_table, &goto_table, &grammar, &follow, &graph,
+	build_automaton(&action_table, &grammar, &follow, &graph,
 					&scheme);
 
-	printf(".trans = (table_t*[])\n{\n");	
-	for (i = 0; i < action_table.size; i++)
-	{
-		printf("\t(table_t[])\n\t{\n");
-		int j;
-		for (j = 0; j < TOKENS; j++)
-		{
-			printf("\t\t{");
-			switch (action_table.action[i][j].action)
-			{
-				case AC_ERROR:
-					printf("AC_ERROR, 0");
-					break;
-				case AC_ACCEPT:
-					printf("AC_ACCEPT, 0");
-					break;
-				case AC_SHIFT:
-					printf("AC_SHIFT, %d", action_table.action[i][j].num);
-					break;
-				case AC_REDUCE:
-					printf("AC_REDUCE, %d", action_table.action[i][j].num);
-					break;
-				case AC_GOTO:
-					printf("AC_GOTO, %d", action_table.action[i][j].num);
-					break;
-			}
-			printf("},\n");
-		}
-		printf("\t},\n");	
-	}
+	write_tables(&action_table, &grammar);
 
-	printf("},\n.grammar_left = (item_t[])\n{\n\t");
-	for (i = 0; i < grammar.count; i++)
-	{
-		printf("%d, ", grammar.rules[i].left);
-	}
-	
-	printf("\n},\n.grammar_size = (int[])\n{\n\t");
-	for (i = 0; i < grammar.count; i++)
-	{
-		printf("%d, ", grammar.rules[i].rule_size);
-	}
-	printf("\n}\n");
-   
 
 
 
