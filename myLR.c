@@ -8,27 +8,40 @@
 #include "values.h"
 #include "scanner.lex.h"
 
+void none(state_t result[])
+{
+	return;
+}
+void sum(state_t result[], int* result_top)
+{
+	result[*result_top - 2].number += result[*result_top].number;
+	*result_top -= 2;
+}
+void mul(state_t result[], int* result_top)
+{
+	result[*result_top - 2].number *= result[*result_top].number;
+	*result_top -= 2;
+}
+void equat(state_t result[], int* result_top)
+{
+	result[*result_top - 2].number = result[*result_top - 1].number;
+	*result_top -= 2;
+}
+
+void (*func[])() =
+{
+	&none,
+	&sum,
+	&none,
+	&mul,
+	&none,
+	&equat,
+	&none,
+};
+
 void apply(state_t result[], int* result_top, int num)
 {
-	if (num % 2 == 0)
-	{
-		return;
-	}
-
-	switch (num)
-	{
-		case 1:
-			result[*result_top - 2].number += result[*result_top].number;
-			break;
-		case 3:
-			result[*result_top - 2].number *= result[*result_top].number;
-			break;
-		case 5:
-			result[*result_top - 2].number = result[*result_top - 1].number;
-			break;
-	}
-
-	*result_top -= 2;
+	return func[num](result, result_top);
 }
 
 
