@@ -507,20 +507,15 @@ int main()
 	};
 	term_non_term_t* term_non_term = (term_non_term_t[])
 	{
-		TERM,
-		TERM,
-		TERM,
-		TERM,
-		TERM,
-		TERM,
-		TERM,
-		NON_TERM,
-		NON_TERM,
-		NON_TERM,
-		NON_TERM,
+		[0 ... TOKENS-1] = TERM,
 	};
-
+	
 	int i;
+	for (i = 0; i < grammar.count; i++)
+	{
+		term_non_term[grammar.rules[i].left] = NON_TERM;
+	}
+	
 	first_t first;
 	follow_t follow;
 	for (i = 0; i < TERM_COUNT; i++)
