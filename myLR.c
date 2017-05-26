@@ -7,46 +7,20 @@
 
 #include "values.h"
 #include "scanner.lex.h"
+#include "apply.h"
+#include "executions.h"
 
-void none(state_t result[])
-{
-	return;
-}
-void sum(state_t result[], int* result_top)
-{
-	result[*result_top - 2].number += result[*result_top].number;
-	*result_top -= 2;
-}
-void mul(state_t result[], int* result_top)
-{
-	result[*result_top - 2].number *= result[*result_top].number;
-	*result_top -= 2;
-}
-void equat(state_t result[], int* result_top)
-{
-	result[*result_top - 2].number = result[*result_top - 1].number;
-	*result_top -= 2;
-}
 
-void (*func[])() =
-{
-	&none,
-	&sum,
-	&none,
-	&mul,
-	&none,
-	&equat,
-	&none,
-};
-
+apply_func_t apply_table[TERM_COUNT];
 void apply(state_t result[], int* result_top, int num)
 {
-	return func[num](result, result_top);
+	apply_table[num](result, result_top);
 }
 
 
 bool solve(tables_t* table)
 {
+	init_apply();
 	state_t input;
 	input.token = yylex (&input.number);
 

@@ -567,6 +567,6 @@ int main()
 					&scheme);
 
 	write_tables(&action_table, &grammar);
-
+	
 	return 0;
 }
