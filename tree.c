@@ -12,7 +12,6 @@ typedef enum
     NT_END,
     NT_LPAREN,
     NT_RPAREN,
-    NT_NULL,
 } node_type_t;
 
 typedef struct rule_token_t
@@ -37,7 +36,8 @@ typedef struct node_t
     struct node_t* parent;
 } node_t;
 
-int default_prior[7] =
+
+int default_prior[7] = 
 {
     [NT_CHAR] = 0,
     [NT_END] = 0,
@@ -172,7 +172,8 @@ buffer_t input =
     },
 };
 
-void dfs(node_t* v)
+
+void print_dfs(node_t* v)
 {
     if (v->type)
     {
@@ -185,12 +186,12 @@ void dfs(node_t* v)
     if (v->left)
     {
         printf("LF\n");
-        dfs(v->left);
+        print_dfs(v->left);
     }
     if (v->right)
     {
         printf("RG\n");
-        dfs(v->right);
+        print_dfs(v->right);
     }
     if (v->type)
     {
@@ -203,18 +204,31 @@ void dfs(node_t* v)
     printf("EXIT\n");
 }
 
-int main()
+void link(node_t** work, node_t** current)
 {
-    /*
-    node_t b;
-    a->prior = 2;
-    printf("%d\n", a->prior);
-    */
-    struct node_t* a = malloc(sizeof(node_t));
-    struct node_t* b = malloc(sizeof(node_t));
-    
+    if ((*work)->parent)
+    {
+        if ((*work)->parent->left == *work)
+        {
+            (*work)->parent->left = *current;
+        }
+        else if ((*work)->parent->right == *work)
+        {
+            (*work)->parent->right = *current;
+        }
+        else
+        {
+            printf("Link Error\n");
+            exit(0);
+        }
+        (*current)->parent = (*work)->parent;
+    }
+}
+
+node_t* build_parse_tree()
+{
     struct node_t* work = malloc(sizeof(node_t));
-    work->type = NT_NULL;
+    
     int i;
     for (i = 0; i < input.size; i++)
     {
@@ -223,55 +237,23 @@ int main()
         current->symbol = input.list[i].symbol;
         current->prior = default_prior[current->type];
         
-        if (current->symbol == 'f')
-            printf("OK      dasfdafa sasdf asdf a\n");
         switch (current->type)
         {
             case NT_CHAR: case NT_END:
-                if (work->parent)
-                {
-                    if (work->parent->left == work)
-                    {
-                        work->parent->left = current;
-                    }
-                    else if (work->parent->right == work)
-                    {
-                        work->parent->right = current;
-                    }
-                    else
-                    {
-                        printf("Something wrong at %d-th symbol\n", i);
-                        return 0;
-                    }
-                    current->parent = work->parent;
-                }
+                link(&work, &current);
+                
                 work = current;
                 break;
+                
             case NT_LPAREN:
-                if (work->parent)
-                {
-                    if (work->parent->left == work)
-                    {
-                        work->parent->left = current;
-                    }
-                    else if (work->parent->right == work)
-                    {
-                        work->parent->right = current;
-                    }
-                    else
-                    {
-                        printf("Something wrong at %d-th symbol\n", i);
-                        return 0;
-                    }
-                    current->parent = work->parent;
-                }
-                printf("type %d\n", work->type);
+                link(&work, &current);
+                
                 work = current;
                 work->left = malloc(sizeof(node_t));
                 work->left->parent = work;
                 work = work->left;
-                work->type = NT_NULL;
                 break;
+                
             case NT_RPAREN:
                 while (work->type != NT_LPAREN)
                 {
@@ -279,68 +261,44 @@ int main()
                 }
                 work->prior = 0;
                 break;
+                
             case NT_STAR:
-                if (work->parent)
-                {
-                    if (work->parent->left == work)
-                    {
-                        work->parent->left = current;
-                    }
-                    else if (work->parent->right == work)
-                    {
-                        work->parent->right = current;
-                    }
-                    else
-                    {
-                        printf("Something wrong at %d-th symbol\n", i);
-                        return 0;
-                    }
-                    current->parent = work->parent;
-                }
+                link(&work, &current);
+                
                 current->left = work;
                 work->parent = current;
                 work = current;
                 break;
-            default:
+                
+            case NT_OR: case NT_CAT:
                 while (work->parent && work->parent->prior <= current->prior)
                 {
                     work = work->parent;
                 }
-                if (work->parent)
-                {
-                    if (work->parent->left == work)
-                    {
-                        work->parent->left = current;
-                    }
-                    else if (work->parent->right == work)
-                    {
-                        work->parent->right = current;
-                    }
-                    else
-                    {
-                        printf("Something wrong at %d-th symbol\n", i);
-                        return 0;
-                    }
-                    //printf("%d\n", work->type); 
-                    current->parent = work->parent;
-                }
+                link(&work, &current);
+                
                 current->left = work;
-                work->parent = current;
                 current->right = malloc(sizeof(node_t));
                 current->right->parent = current;
+                work->parent = current;
                 work = current->right;
-                work->type = NT_NULL;
         }
-        //printf("---------------- %d\n", i);
-        //dfs(work);
     }
     
-    printf("=============%d OK\n", i);
     while (work->parent)
     {
         work = work->parent;
     }
-    dfs(work);
+    
+    return work;
+}
+
+
+int main()
+{
+    node_t* work = build_parse_tree();
+    
+    print_dfs(work);
     
     return 0;
 }
