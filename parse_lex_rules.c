@@ -69,27 +69,20 @@ bool dont_need_cat(char* last, char* cur)
 
 void parse_rule(char input[BUFFER_SIZE], int idx)
 {
-    int first_semic = 0;
-    int second_semic = 0;
+    int semic_pos = 0;
     int i;
-    for (i = 0; second_semic == 0; i++)
+    for (i = 0; semic_pos == 0; i++)
     {
         if (input[i] == ':')
         {
-            if (first_semic == 0)
-            {
-                first_semic = i;
-            }
-            else
-            {
-                second_semic = i;
-            }
+            semic_pos = i;
+            break;
         }
     }
     
     char s[BUFFER_SIZE];
     int s_ptr = 0;
-    for (i = second_semic + 1; i < strlen(input); )
+    for (i = semic_pos + 1; i < strlen(input); )
     {
         if (input[i] == '\\')
         {
@@ -157,7 +150,7 @@ void parse_rule(char input[BUFFER_SIZE], int idx)
     //printf("%s", s);
     
     char temp[BUFFER_SIZE];
-    for (i = 0; i < first_semic; i++)
+    for (i = 0; i < semic_pos; i++)
     {
         temp[i] = input[i];
     }
@@ -165,15 +158,7 @@ void parse_rule(char input[BUFFER_SIZE], int idx)
     
 
     printf("    {\n        .abbrev = \"%s\",\n", temp);
-    
-    for (i = first_semic + 1; i < second_semic; i++)
-    {
-        temp[i - first_semic - 1] = input[i];
-    }
-    temp[i - first_semic - 1] = '\0';
-    
-    printf("        .prior = %d,\n        .list = (rule_token_t[])\n        {\n", 
-        atoi(temp));
+    printf("        .list = (rule_token_t[])\n        {\n");
     
     char* last = "NT_LPAREN";
     print_token(last, NOT_CHAR);

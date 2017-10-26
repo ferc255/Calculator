@@ -30,7 +30,6 @@ typedef struct rule_token_t
 typedef struct lex_rule_t
 {
     char* abbrev;
-    int prior;
     int size;
     rule_token_t* list;
 } lex_rule_t;
@@ -400,8 +399,7 @@ void build_automaton(int autom[N][(1 << CHAR_BIT)], int* size, int final[N], nod
         for (j = 0; j < state_size[i]; j++)
         {
             if (aux[i][j]->type == NT_END && (final[i] == NOT_FINAL || 
-                input->rule[final[i]].prior < 
-                    input->rule[aux[i][j]->symbol].prior))
+                final[i] > aux[i][j]->symbol))
             {
                 final[i] = aux[i][j]->symbol;
             }
