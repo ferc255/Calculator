@@ -523,12 +523,10 @@ void beautify_automaton(int autom[N][(1 << CHAR_BIT)], int* size, int final[N],
                 else if (j == '\'')
                 {
                     printf("\\'");
-                    //printf("FUUUUUUUUUCCCKKKK\n");
                 }
                 else if (j == '\"')
                 {
                     printf("\\\"");
-                    //printf("FUUUUUUUUUCCCKKKK\n");
                 }
                 else
                 {

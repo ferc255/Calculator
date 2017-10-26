@@ -136,14 +136,24 @@ void parse_rule(char input[BUFFER_SIZE], int idx)
                 
                 i += 2;
             }
+            else if (input[i + 1] == ' ')
+            {
+                s[s_ptr++] = ' ';
+                
+                i+= 2;
+            }
             else
             {
                 s[s_ptr++] = input[i++];
             }
         }
-        else
+        else if (input[i] != ' ')
         {
             s[s_ptr++] = input[i++];
+        }
+        else
+        {
+            i++;
         }
     }
     s[s_ptr - 1] = '\0';
