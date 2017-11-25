@@ -113,7 +113,6 @@ void print_dfs(node_t* v)
     }
     printf("EXIT\n");
 
-    //print_arr(v->first, &v->first_ptr);
     print_arr(v->follow, &v->follow_ptr);
     printf("====\n");
 }

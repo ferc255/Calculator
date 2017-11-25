@@ -1,19 +1,18 @@
 #!/bin/bash
-echo "cc lex_part.c -o myflex"
-cc parse_lex_rules.c -o aux_lex
+echo "cc lex_part.c -o PLR"
+cc parse_lex_rules.c -o PLR
 echo "generation lex-sequence..."
-./aux_lex < lex_rules.txt > lex_sequence.h
+./PLR < lex_rules.txt > lex_sequence.h
 
-echo "cc build_autom.c -o mybison"
-cc build_lex_autom.c -o aux_autom
+echo "cc build_autom.c -o BLA"
+cc build_lex_autom.c -o BLA
 echo "automaton building..."
-./aux_autom > automaton.h
-#cat automaton.h
+./BLA > lex_automaton.h
 
-echo "cc main.c -o task4"
+echo "cc main.c -o lex_app"
 cc my_yylex.c -o lex_app
 
 echo ""
 echo "cleaning temporarily files..."
-rm lex_sequence.h automaton.h aux_autom aux_lex
+rm PLR lex_sequence.h BLA lex_automaton.h
 echo "_ ready for using _"

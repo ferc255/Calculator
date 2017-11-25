@@ -1,30 +1,16 @@
 all: lex_app
 
-lex_app: automaton lex_app1 
-
-lex_app1: my_yylex.c
-	$(CC) $< -o $@
+lex_app: automaton.h my_yylex.c
+	$(CC) my_yylex.c -o $@
 	
-automaton: automaton.h building
-	build1 > automaton.h
+automaton.h: BLA
+	./BLA > automaton.h
 	
-	
-building: sequence build1 
-	
-build1: build_lex_autom.c
-	$(CC) $< -o $@
-	
-sequence: lowest lex_sequence.h 
-	lowest < lex_rules.txt > lex_sequence.h
+BLA: lex_sequence.h build_lex_autom.c
+	$(CC) build_lex_autom.c -o $@
 
+lex_sequence.h: PLR lex_rules.txt
+	./PLR < lex_rules.txt > lex_sequence.h
 
-
-
-lowest: parse_lex_rules
-	$(CC) $< -o $@
-
-
-
-
-tree: tree.c
+PLR: parse_lex_rules.c
 	$(CC) $< -o $@

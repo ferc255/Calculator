@@ -1,4 +1,4 @@
-#include <stdbool.h>
+#include <stdbool.h> 
 #include <stdio.h>
 #include <string.h>
 
@@ -157,7 +157,6 @@ void parse_rule(char input[BUFFER_SIZE], int idx)
         }
     }
     s[s_ptr - 1] = '\0';
-    //printf("%s", s);
     
     char temp[BUFFER_SIZE];
     for (i = 0; i < semic_pos; i++)
@@ -172,8 +171,6 @@ void parse_rule(char input[BUFFER_SIZE], int idx)
     
     char* last = "NT_LPAREN";
     print_token(last, NOT_CHAR);
-    
-    //printf("%s\n", s);
     
     int size = 4;
     for (i = 0; i < strlen(s); )
@@ -206,7 +203,6 @@ void parse_rule(char input[BUFFER_SIZE], int idx)
             {
                 cur = "NT_CHAR";
                 symbol = s[i + 1];
-                //printf("%d\n", s[i + 1]);
             }
             
             i += 2;
@@ -267,7 +263,6 @@ int main()
         strcat(input, temp);
         parse_rule(temp, count);
         count++;
-        //printf("%s\n", temp);
     }
     
     printf("},\n.count = %d,\n", count);

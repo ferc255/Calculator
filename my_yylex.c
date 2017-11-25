@@ -17,7 +17,6 @@ typedef struct automaton_t
 } automaton_t;
 
 
-
 int calc_max_match(automaton_t* automaton, char* input, int start_pos, char** abbrev)
 {
     int cur_state = 0;
@@ -85,7 +84,7 @@ int main()
 {
     automaton_t automaton =
     {
-        #include "automaton.h"
+        #include "lex_automaton.h"
     }; 
     //printf("%d\n", automaton.size);
     
