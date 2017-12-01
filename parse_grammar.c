@@ -3,7 +3,7 @@
 
 #include "values.h"
 
-char* parse_lexeme(char input[BUFFER_SIZE], int start_pos)
+char* parse_lexeme(char* input, int start_pos)
 {
     //printf("s=%s", input);
     char temp[BUFFER_SIZE];
@@ -20,7 +20,7 @@ char* parse_lexeme(char input[BUFFER_SIZE], int start_pos)
     return result;
 }
 
-int get_token_id(int* tokens, char token_names[MAX_TOKENS][BUFFER_SIZE])
+int get_token_id(int* tokens, char token_names[][BUFFER_SIZE])//, char* token_names[MAX_TOKENS][BUFFER_SIZE])
 {
     //printf("token_last = |%s|\n", token_names[*tokens]);
     int i;
@@ -37,8 +37,8 @@ int get_token_id(int* tokens, char token_names[MAX_TOKENS][BUFFER_SIZE])
     return *tokens - 1;
 }
 
-int parse_until(char input[BUFFER_SIZE], char symbol, int* start_pos, int* tokens,
-    char token_names[MAX_TOKENS][BUFFER_SIZE])
+int parse_until(char* input, char symbol, int* start_pos, int* tokens,
+    char token_names[][BUFFER_SIZE])
 {
     int i;
     for (i = *start_pos; input[i] != ' ' && input[i] != '\t' && 
@@ -54,12 +54,12 @@ int parse_until(char input[BUFFER_SIZE], char symbol, int* start_pos, int* token
     return get_token_id(tokens, token_names);
 }
 
-void parse_line(char input[BUFFER_SIZE], int* count, int* tokens,
-    char token_names[MAX_TOKENS][BUFFER_SIZE])
+void parse_line(char* input, int* count, int* tokens,
+    char token_names[][BUFFER_SIZE])
 {
     int i;
     for (i = 0; input[i] == ' ' || input[i] == '\t'; i++);
-    if (input[i] == '$') return;
+    if (input[i] == '$' || input[i] == '\n') return;
     
     (*count)++;
     int left = parse_until(input, ':', &i, tokens, token_names);

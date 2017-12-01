@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-const int BUFFER_SIZE = 1000;
+const int BUFFER_SIZE = 10000;
 const char NOT_CHAR = 254;
 
 void print_token(char* type, char symbol)

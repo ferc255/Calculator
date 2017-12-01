@@ -23,6 +23,7 @@ echo "automaton building..."
 ./BLA > lex_automaton.h
 echo ""
 
+
 echo "cc main.c -o main"
 cc main.c -o main
 

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #include "values.h"
-//#include "my_yylex.h"
+#include "my_yylex.h"
 
 void f(int s)
 {
@@ -69,7 +69,8 @@ bool parse(tables_t* tables)
     int result[MAX_STATES] = {0};
     int stack_top = 0;
     
-    token_t token = my_yylex1();
+    token_t token = my_yylex();
+    //printf("%d %d\n", token.id, token.data);
     while (true)
     {
         if (token.id == INVALID_TOKEN)
@@ -87,7 +88,8 @@ bool parse(tables_t* tables)
                 stack_top++;
                 state[stack_top] = cell.num;
                 result[stack_top] = token.data;
-                token = my_yylex1();
+                token = my_yylex();
+                //printf("%d %d\n", token.id, token.data);
                 break;
             case AC_REDUCE:
                 apply[cell.num](&result, stack_top);

@@ -1,2 +1,4 @@
-OP: +|-
-NM: \d\d*
+PLUS: +
+MINUS: -
+NUM: \d\d*
+WS: \s

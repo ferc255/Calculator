@@ -1,7 +1,8 @@
 #ifndef _VALUES_H_
 #define _VALUES_H_
 
-#define BUFFER_SIZE 300
+#define BUFFER_SIZE 1000
+#define ERROR_STATE -1
 #define INVALID_TOKEN -1
 #define MAX_STATES 300
 #define MAX_TOKENS 300
@@ -15,6 +16,16 @@ typedef enum
     AC_ACCEPT,
     AC_ERROR,
 } action_t;
+
+
+
+typedef struct lex_automaton_t
+{
+    int size;
+    int* final;
+    int** table;
+} lex_automaton_t;
+
 
 
 typedef struct production_skeleton_t
