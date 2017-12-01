@@ -100,8 +100,8 @@ bool parse(tables_t* tables)
                 printf("Result: %d\n", result[1]);
                 return true;
             case AC_ERROR:
-                printf("Invalid token [%s] for the %d-th state.\n",
-                    tables->token_names.list[token.id], cur_state);
+                printf("Invalid token [id=%d] for the %d-th state.\n",
+                    token.id, cur_state);
                 return false;
         }
     }
@@ -111,19 +111,8 @@ int main()
 {
     tables_t tables = 
     {
-        .token_names = 
-        {
-            .size = 6,
-            .list = (char*[])
-            {
-                "$", 
-                "^",
-                "E",
-                "+",
-                "a",
-                "-",
-            }
-        },
+        #include "syn_tables.h"
+        /*
         .grammar_left = (int[])
         {
             1, 2, 2, 2,
@@ -198,6 +187,7 @@ int main()
                 {AC_REDUCE, 3},
             },
         },
+        */
     };
     
     //printf("%s\n", tables.token_names.list[0]);

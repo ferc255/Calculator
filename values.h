@@ -1,6 +1,7 @@
 #ifndef _VALUES_H_
 #define _VALUES_H_
 
+#define BUFFER_SIZE 300
 #define INVALID_TOKEN -1
 #define MAX_STATES 300
 #define MAX_TOKENS 300
@@ -14,6 +15,19 @@ typedef enum
     AC_ACCEPT,
     AC_ERROR,
 } action_t;
+
+
+typedef struct production_skeleton_t
+{
+    int size;
+    char* list[MAX_TOKENS];
+} production_skeleton_t;
+
+typedef struct grammar_skeleton_t
+{
+    int size;
+    production_skeleton_t prod[MAX_TOKENS];
+} grammar_skeleton_t;
 
 typedef struct table_cell_t
 {
@@ -31,7 +45,7 @@ typedef struct item_t
 {
     int prod;
     int pos;
-    int end;
+    token_id_t end;
 } item_t;
 
 typedef struct item_list_t
@@ -43,13 +57,13 @@ typedef struct item_list_t
 typedef struct first_t
 {
     int size;
-    int* list;
+    token_id_t* list;
 } first_t;
 
 typedef struct production_t
 {
-    int left;
-    int* list;
+    token_id_t left;
+    token_id_t* list;
     int size;
 } production_t;
 
