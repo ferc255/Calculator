@@ -219,7 +219,7 @@ void find_reduce(int state, grammar_t* grammar, item_list_t* scheme,
                 printf("[gen_tables.c] Invalid grammar. ");
                 printf("The conflict for {%d, %s}\n", state,
                     grammar->token_names.list[item.end]);
-                exit(0);
+                //exit(0);
             }
             
             if (item.prod == 0)
@@ -456,6 +456,7 @@ int main()
         printf("\n");
     }
     */
+    
     
     beautify_tables(&grammar, &transit);
 }

@@ -1,0 +1,7 @@
+E: E PLUS NUM
+    $$ = $1 + $3
+    
+E: E MINUS NUM
+    $$ = $1 - $3
+E: NUM
+    $$ = $1

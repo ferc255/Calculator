@@ -4,75 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define N 200
+#include "values.h"
 
-const int ERROR_STATE = -1;
-const int NOT_FINAL = -1;
-
-typedef enum
-{
-    NT_CHAR,
-    NT_CAT,
-    NT_STAR,
-    NT_OR,
-    NT_END,
-    NT_LPAREN,
-    NT_RPAREN,
-    NT_EPS,
-} node_type_t;
-
-typedef struct rule_token_t
-{
-    node_type_t type;
-    char symbol;
-} rule_token_t;
-
-typedef struct lex_rule_t
-{
-    char* abbrev;
-    int size;
-    rule_token_t* list;
-} lex_rule_t;
-
-typedef struct buffer_t
-{
-    int count;
-    lex_rule_t* rule;
-} buffer_t;
-
-typedef struct node_t
-{
-    int index;
-    node_type_t type;
-    char symbol;
-    int prior;
-    bool is_nullable;
-    int first_ptr, last_ptr, follow_ptr;
-    struct node_t* first[N];
-    struct node_t* last[N];
-    struct node_t* follow[N];
-    struct node_t* left;
-    struct node_t* right;
-    struct node_t* parent;
-} node_t;
-
-
-int default_prior[] = 
-{
-    [NT_CHAR] = 0,
-    [NT_END] = 0,
-    [NT_EPS] = 0,
-    [NT_STAR] = 1,
-    [NT_CAT] = 2,
-    [NT_OR] = 3,
-    [NT_LPAREN] = 4,
-    [NT_RPAREN] = 4,
-};
-
-
-
-
-void print_arr(node_t* arr[1000], int *sz)
+void print_arr(node_t* arr[MAX_STATES], int *sz)
 {
     int i;
     for (i = 0; i < *sz; i++)
@@ -224,7 +158,7 @@ node_t* build_parse_tree(buffer_t* input)
 }
 
 
-void merge_arrays(node_t* a[1000], int* sz_a, node_t* b[1000], int* sz_b)
+void merge_arrays(node_t** a, int* sz_a, node_t** b, int* sz_b)
 {
     int i;
     for (i = 0; i < *sz_b; i++)
@@ -233,7 +167,7 @@ void merge_arrays(node_t* a[1000], int* sz_a, node_t* b[1000], int* sz_b)
     }
 }
 
-void merge_sets(node_t* a[1000], int* sz_a, node_t* b[1000], int* sz_b)
+void merge_sets(node_t** a, int* sz_a, node_t** b, int* sz_b)
 {
     int i;
     for (i = 0; i < *sz_b; i++)
@@ -326,7 +260,7 @@ void calc_sets(node_t** v)
 }
 
 
-int find_state(node_t* aux[N][N], int size, int state_size[N])
+int find_state(node_t* aux[][MAX_STATES], int size, int* state_size)
 {
     int i;
     for (i = 0; i < size; i++)
@@ -338,7 +272,7 @@ int find_state(node_t* aux[N][N], int size, int state_size[N])
         
         bool is_same = true;
         int j;
-        bool used[N] = {[0 ... N - 1] = false};
+        bool used[MAX_STATES] = {[0 ... MAX_STATES - 1] = false};
         for (j = 0; j < state_size[i]; j++)
         {
             int k;
@@ -368,7 +302,7 @@ int find_state(node_t* aux[N][N], int size, int state_size[N])
 }
 
 
-void print_arr2(node_t* arr[(1 << CHAR_BIT)], int *sz)
+void print_arr2(node_t** arr, int *sz)
 {
     int i;
     for (i = 0; i < *sz; i++)
@@ -379,11 +313,11 @@ void print_arr2(node_t* arr[(1 << CHAR_BIT)], int *sz)
 }
 
 
-void build_automaton(int autom[N][(1 << CHAR_BIT)], int* size, int final[N], node_t* root, 
+void build_automaton(int autom[][(1 << CHAR_BIT)], int* size, int* final, node_t* root, 
     buffer_t* input)
 {
-    node_t* aux[N][N];
-    int state_size[N];
+    node_t* aux[MAX_STATES][MAX_STATES];
+    int state_size[MAX_STATES];
     int i;
     for (i = 0; i < root->first_ptr; i++)
     {
@@ -397,7 +331,7 @@ void build_automaton(int autom[N][(1 << CHAR_BIT)], int* size, int final[N], nod
         int j;
         for (j = 0; j < state_size[i]; j++)
         {
-            if (aux[i][j]->type == NT_END && (final[i] == NOT_FINAL || 
+            if (aux[i][j]->type == NT_END && (final[i] == INVALID_TOKEN || 
                 final[i] > aux[i][j]->symbol))
             {
                 final[i] = aux[i][j]->symbol;
@@ -413,35 +347,17 @@ void build_automaton(int autom[N][(1 << CHAR_BIT)], int* size, int final[N], nod
                 if (aux[i][k]->symbol == j)
                 {
                     merge_sets(aux[*size], &state_size[*size], aux[i][k]->follow, &aux[i][k]->follow_ptr);
-                    if (aux[i][k]->type == NT_EPS)
-                    {
-                        //printf("WTF???\n");
-                    }
                 }
             }
-            if (state_size[*size] == 0)
-            {
-                if (j == NT_EPS)
-                {
-                    //printf("WTF???\n");
-                }
-                continue;
-            }
+            if (state_size[*size] == 0) continue;
+            
             int state_idx = find_state(aux, *size, state_size);
             
             if (state_idx == *size)
             {
                 (*size)++;
             }
-            
-            if (state_size[state_idx] == 0)
-            {
-                autom[i][j] = ERROR_STATE;
-            }
-            else
-            {
-                autom[i][j] = state_idx;
-            }
+            autom[i][j] = state_idx;
         }
     }
     
@@ -470,7 +386,7 @@ void build_automaton(int autom[N][(1 << CHAR_BIT)], int* size, int final[N], nod
                 printf("(%d, %d) ", j, autom[i][j]);
             }
         }
-        if (final[i] != NOT_FINAL)
+        if (final[i] != INVALID_TOKEN)
         {
             printf("%s ", input->rule[final[i]].abbrev);
         }
@@ -480,16 +396,31 @@ void build_automaton(int autom[N][(1 << CHAR_BIT)], int* size, int final[N], nod
 }
 
 
-void beautify_automaton(int autom[N][(1 << CHAR_BIT)], int* size, int final[N],
-    buffer_t* input)
+void beautify_automaton(int autom[][(1 << CHAR_BIT)], int* size, int* final,
+    buffer_t* input, grammar_t* grammar)
 {
-    printf(".size = %d,\n.final = (char*[])\n{\n    [0 ... %d] = \"\",\n", *size, *size - 1);
+    printf(".size = %d,\n.final = (int[])\n{\n    [0 ... %d] = INVALID_TOKEN,\n", *size, *size - 1);
     int i;
     for (i = 0; i < *size; i++)
     {
-        if (final[i] != NOT_FINAL)
+        if (final[i] != INVALID_TOKEN)
         {
-            printf("    [%d] = \"%s\",\n", i, input->rule[final[i]].abbrev);
+            token_id_t token_id = INVALID_TOKEN;
+            int j;
+            for (j = 0; j < grammar->token_names.size; j++)
+            {
+                if (strcmp(grammar->token_names.list[j], 
+                    input->rule[final[i]].abbrev) == 0)
+                {
+                    token_id = j;
+                    break;
+                }
+            }
+            
+            if (token_id != INVALID_TOKEN)
+            {
+                printf("    [%d] = %d,\n", i, token_id);
+            }
         }
     }
     printf("},\n.table = (int*[])\n{\n");
@@ -555,9 +486,9 @@ int main()
     
     //print_dfs(work);
     
-    int autom[N][(1 << CHAR_BIT)];
+    int autom[MAX_STATES][(1 << CHAR_BIT)];
     int i;
-    for (i = 0; i < N; i++)
+    for (i = 0; i < MAX_STATES; i++)
     {
         int j;
         for (j = 0; j < (1 << CHAR_BIT); j++)
@@ -567,10 +498,14 @@ int main()
     }
     
     int size = 0;
-    int final[N] = {[0 ... N - 1] = NOT_FINAL};
+    int final[MAX_STATES] = {[0 ... MAX_STATES - 1] = INVALID_TOKEN};
     build_automaton(autom, &size, final, work, &input);
 
-    beautify_automaton(autom, &size, final, &input);
+    grammar_t grammar = 
+    {
+        #include "grammar.h"
+    };
+    beautify_automaton(autom, &size, final, &input, &grammar);
     
     return 0;
 }

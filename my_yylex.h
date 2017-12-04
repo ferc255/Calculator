@@ -30,41 +30,27 @@ int calc_max_match(lex_automaton_t* automaton, char* input, int start_pos,
     return result;
 }
 
-
-void print_token(char* abbrev, char* input, int start_pos, int len)
+void parse_data(token_t* token, char* input, int start_pos, int len)
 {
-    printf("<%s, '", abbrev);
+    char* temp = malloc(len);
+    memcpy(temp, input + start_pos, len);
     
     int i;
-    for (i = 0; i < len; i++)
+    for (i = 0; i < strlen(temp); i++)
     {
-        char symbol = input[start_pos + i];
-        if (symbol == 9)
+        if (!isdigit(temp[i]))
         {
-            printf("\\t");
-        }
-        else if (symbol == 10)
-        {
-            printf("\\n");
-        }
-        else if (symbol == 13)
-        {
-            printf("\\r");
-        }
-        else
-        {
-            printf("%c", symbol);
+            return;
         }
     }
-    
-    printf("'>\n");
+    token->data = atoi(temp);
 }
-
 
 token_t my_yylex()
 {
     lex_automaton_t automaton =
     {
+        /*
         .size = 4,
         .final = (int[])
         {
@@ -114,8 +100,9 @@ token_t my_yylex()
                 ['9'] = 3,
             },
         },
+        */
 
-        //#include "lex_automaton.h"
+        #include "lex_automaton.h"
     }; 
     //printf("%d\n", automaton.size);
     
@@ -151,13 +138,7 @@ token_t my_yylex()
             exit(0);
         }
         
-        if (token.id == 4)
-        {
-            char* temp = malloc(max_match);
-            memcpy(temp, input + i, max_match);
-            token.data = atoi(temp);
-        }
-        
+        parse_data(&token, input, i, max_match);
         i += max_match;
         
         return token;

@@ -6,6 +6,7 @@
 #define INVALID_TOKEN -1
 #define MAX_STATES 300
 #define MAX_TOKENS 300
+#define NOT_CHAR 254
 
 typedef int token_id_t;
 
@@ -17,6 +18,65 @@ typedef enum
     AC_ERROR,
 } action_t;
 
+typedef enum
+{
+    NT_CHAR,
+    NT_CAT,
+    NT_STAR,
+    NT_OR,
+    NT_END,
+    NT_LPAREN,
+    NT_RPAREN,
+    NT_EPS,
+} node_type_t;
+
+typedef struct rule_token_t
+{
+    node_type_t type;
+    char symbol;
+} rule_token_t;
+
+typedef struct lex_rule_t
+{
+    char* abbrev;
+    int size;
+    rule_token_t* list;
+} lex_rule_t;
+
+typedef struct buffer_t
+{
+    int count;
+    lex_rule_t* rule;
+} buffer_t;
+
+typedef struct node_t
+{
+    int index;
+    node_type_t type;
+    char symbol;
+    int prior;
+    bool is_nullable;
+    int first_ptr, last_ptr, follow_ptr;
+    struct node_t* first[BUFFER_SIZE];
+    struct node_t* last[BUFFER_SIZE];
+    struct node_t* follow[BUFFER_SIZE];
+    struct node_t* left;
+    struct node_t* right;
+    struct node_t* parent;
+} node_t;
+
+
+const int default_prior[] = 
+{
+    [NT_CHAR] = 0,
+    [NT_END] = 0,
+    [NT_EPS] = 0,
+    [NT_STAR] = 1,
+    [NT_CAT] = 2,
+    [NT_OR] = 3,
+    [NT_LPAREN] = 4,
+    [NT_RPAREN] = 4,
+};
 
 
 typedef struct lex_automaton_t

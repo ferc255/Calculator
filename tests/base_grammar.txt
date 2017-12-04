@@ -1,0 +1,15 @@
+Program: KWbegin Operators KWend
+Operators: oper
+Operators: oper Operators
+oper: KWval ID OP= Sum
+oper: KWwhile Sum oper
+oper KWbegin Operators KWend
+Sum: Expr
+Sum: Expr OP Sum
+Sum: KWif Sum KWthen Sum KWelse Sum
+Expr: KWlet Operators KWin Sum KWend
+Expr: ID
+Expr: LC
+Expr: IN
+Expr: NM
+Expr: LP Sum RP

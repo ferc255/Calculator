@@ -71,6 +71,9 @@ bool parse(tables_t* tables)
     
     token_t token = my_yylex();
     //printf("%d %d\n", token.id, token.data);
+    
+    //printf("Rightmost derivaton reversed: ");
+    
     while (true)
     {
         if (token.id == INVALID_TOKEN)
@@ -93,12 +96,15 @@ bool parse(tables_t* tables)
                 break;
             case AC_REDUCE:
                 apply[cell.num](&result, stack_top);
+                //printf("%d ", cell.num);
                 stack_top -= tables->grammar_size[cell.num];
                 cur_state = state[stack_top];
                 state[++stack_top] = tables->
                     trans[cur_state][tables->grammar_left[cell.num]].num;
                 break;
             case AC_ACCEPT:
+                //printf("\n");
+            
                 printf("Result: %d\n", result[1]);
                 return true;
             case AC_ERROR:
