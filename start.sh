@@ -23,11 +23,18 @@ echo "automaton building..."
 ./BLA > lex_automaton.h
 echo ""
 
+echo "cc build_executions.c -o BE"
+cc build_executions.c -o BE
+echo "building grammar execution..."
+./BE < grammar.txt > executions.h
+echo ""
 
 echo "cc main.c -o main"
-cc main.c -o main
+cc main.c -lm -o main
 
 echo ""
 echo "cleaning temporarily files..."
-rm PG grammar.h GT syn_tables.h PLR lex_sequence.h BLA lex_automaton.h
+rm PG grammar.h GT syn_tables.h 
+rm PLR lex_sequence.h BLA lex_automaton.h
+rm BE executions.h
 echo "_ ready for using _"

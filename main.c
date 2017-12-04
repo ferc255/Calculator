@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +10,7 @@ void f(int s)
 {
     printf("fuck %d\n", s);
 }
-
+/*
 void apply_prod_0(int* result, int stack_top) {}
 void apply_prod_1(int* result, int stack_top)
 {
@@ -21,7 +22,7 @@ void apply_prod_2(int* result, int stack_top)
 }
 void apply_prod_3(int* result, int stack_top)
 {
-    result[stack_top - 2] = result[stack_top - 2];
+    result[stack_top - 0] = result[stack_top - 0];
 }
 
 void (*apply[])() = 
@@ -31,6 +32,8 @@ void (*apply[])() =
     apply_prod_2,
     apply_prod_3,
 };
+*/
+#include "executions.h"
 
 token_t my_yylex1()
 {
@@ -85,6 +88,7 @@ bool parse(tables_t* tables)
         
         int cur_state = state[stack_top];
         table_cell_t cell = tables->trans[cur_state][token.id];
+        
         switch (cell.action)
         {
             case AC_SHIFT:
