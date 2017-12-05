@@ -1,4 +1,11 @@
 #!/bin/bash
+
+if [ $# -eq 0 ]
+then
+    echo "Which test?"
+    exit 0
+fi
+
 cp $1/* ../
 echo "Expected result:"
 cat $1/output.txt
