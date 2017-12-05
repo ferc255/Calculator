@@ -93,57 +93,56 @@ node_t* build_parse_tree(buffer_t* input)
             
             switch (current->type)
             {
-            case NT_CHAR: case NT_END: case NT_EPS:        
-                link(&work, &current);
+                case NT_CHAR: case NT_END: case NT_EPS:        
+                    link(&work, &current);
 
-                free(work);
-                work = current;
-                break;
+                    free(work);
+                    work = current;
+                    break;
                     
-            case NT_LPAREN:
-                link(&work, &current);
+                case NT_LPAREN:
+                    link(&work, &current);
 
-                free(work);
-                work = current;
-                work->left = malloc(sizeof(node_t));
-                work->left->parent = work;
-                work = work->left;
+                    free(work);
+                    work = current;
+                    work->left = malloc(sizeof(node_t));
+                    work->left->parent = work;
+                    work = work->left;
                     
-                break;
+                    break;
                     
-            case NT_RPAREN:
-                while (work->type != NT_LPAREN || work->prior == 0)
-                {
-                    work = work->parent;
-                }
-                work->prior = 0;
-                break;
+                case NT_RPAREN:
+                    while (work->type != NT_LPAREN || work->prior == 0)
+                    {
+                        work = work->parent;
+                    }
+                    work->prior = 0;
+                    break;
                     
-            case NT_STAR:
-                link(&work, &current);
+                case NT_STAR:
+                    link(&work, &current);
                     
-                current->left = work;
-                work->parent = current;
-                work = current;
-                break;
+                    current->left = work;
+                    work->parent = current;
+                    work = current;
+                    break;
                     
-            case NT_OR: case NT_CAT:                    
-                while (work->parent &&
-                       work->parent->prior <= current->prior)
-                {
-                    work = work->parent;
-                }
-                link(&work, &current);
+                case NT_OR: case NT_CAT:                    
+                    while (work->parent &&
+                           work->parent->prior <= current->prior)
+                    {
+                        work = work->parent;
+                    }
+                    link(&work, &current);
                     
-                current->left = work;
-                current->right = malloc(sizeof(node_t));
-                current->right->parent = current;
-                work->parent = current;
-                work = current->right;
+                    current->left = work;
+                    current->right = malloc(sizeof(node_t));
+                    current->right->parent = current;
+                    work->parent = current;
+                    work = current->right;
             }
         }        
 
-        int cnt = 0;
         while (work->parent)
         {
             work = work->parent;

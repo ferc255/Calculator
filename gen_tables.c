@@ -364,18 +364,18 @@ void beautify_tables(grammar_t* grammar, transit_t* transit)
             printf("        {");
             switch (cell->action)
             {
-            case AC_SHIFT:
-                printf("AC_SHIFT, %d", cell->num);
-                break;
-            case AC_REDUCE:
-                printf("AC_REDUCE, %d", cell->num);
-                break;
-            case AC_ACCEPT:
-                printf("AC_ACCEPT, 0");
-                break;
-            case AC_ERROR:
-                printf("AC_ERROR, 0");
-                break;
+                case AC_SHIFT:
+                    printf("AC_SHIFT, %d", cell->num);
+                    break;
+                case AC_REDUCE:
+                    printf("AC_REDUCE, %d", cell->num);
+                    break;
+                case AC_ACCEPT:
+                    printf("AC_ACCEPT, 0");
+                    break;
+                case AC_ERROR:
+                    printf("AC_ERROR, 0");
+                    break;
             }
             printf("},\n");
         }

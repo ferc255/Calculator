@@ -11,13 +11,13 @@ echo "syntax tables generation..."
 ./GT > syn_tables.h
 echo ""
 
-echo "cc lex_part.c -o PLR"
+echo "cc parse_lex_rules.c -o PLR"
 cc parse_lex_rules.c -o PLR
 echo "generation lex-sequence..."
 ./PLR < lex_rules.txt > lex_sequence.h
 echo ""
 
-echo "cc build_autom.c -o BLA"
+echo "cc build_lex_autom.c -o BLA"
 cc build_lex_autom.c -o BLA
 echo "automaton building..."
 ./BLA > lex_automaton.h
@@ -29,7 +29,7 @@ echo "building grammar execution..."
 ./BE < grammar.txt > executions.h
 echo ""
 
-echo "cc main.c -o main"
+echo "cc main.c -lm -o main"
 cc main.c -lm -o main
 
 echo ""
