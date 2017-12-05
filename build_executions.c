@@ -1,9 +1,11 @@
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "values.h"
+
 
 int parse_number(char* input, int* pos)
 {
@@ -16,6 +18,7 @@ int parse_number(char* input, int* pos)
     *pos = i;
     return atoi(temp);
 }
+
 
 void parse_line(char* input, tables_t* tables, int* count)
 {
@@ -36,7 +39,7 @@ void parse_line(char* input, tables_t* tables, int* count)
             i++;
             int arg = parse_number(input, &i);
             printf("result[stack_top - %d]", tables->grammar_size[*count] 
-                - arg);
+                   - arg);
         }
         else
         {

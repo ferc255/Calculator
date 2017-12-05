@@ -1,8 +1,10 @@
 #include <stdbool.h> 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "values.h"
+
 
 void print_token(char* type, char symbol)
 {
@@ -53,6 +55,7 @@ void print_token(char* type, char symbol)
     printf("            },\n");
 }
 
+
 bool dont_need_cat(char* last, char* cur)
 {
     if (last == "NT_OR" || last == "NT_LPAREN")
@@ -65,6 +68,7 @@ bool dont_need_cat(char* last, char* cur)
     }
     return false;
 }
+
 
 void parse_rule(char input[BUFFER_SIZE], int idx)
 {
@@ -164,7 +168,6 @@ void parse_rule(char input[BUFFER_SIZE], int idx)
     }
     temp[i] = '\0';
     
-
     printf("    {\n        .abbrev = \"%s\",\n", temp);
     printf("        .list = (rule_token_t[])\n        {\n");
     
@@ -247,16 +250,17 @@ void parse_rule(char input[BUFFER_SIZE], int idx)
     print_token("NT_CAT", NOT_CHAR);
     print_token("NT_END", idx);
     
-    printf("        },\n        .size = %d,\n    },\n", size);
-    
+    printf("        },\n        .size = %d,\n    },\n", size);    
 }
+
 
 int main()
 {
+    printf(".rule = (lex_rule_t[])\n{\n");
+    
     char input[BUFFER_SIZE];
     char temp[BUFFER_SIZE];
     int count = 0;
-    printf(".rule = (lex_rule_t[])\n{\n");
     while (fgets(temp, sizeof temp, stdin))
     {
         strcat(input, temp);

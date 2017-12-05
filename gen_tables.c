@@ -4,6 +4,63 @@
 
 #include "values.h"
 
+
+void print_items(grammar_t* grammar, item_list_t* scheme, transit_t* transit)
+{
+    int i;
+    for (i = 0; i < transit->size; i++)
+    {
+        printf("(%d)----------------\n", i);
+        int j;
+        for (j = 0; j < scheme[i].size; j++)
+        {
+            item_t item = scheme[i].list[j];
+            printf("%s -> ", grammar->token_names.
+                   list[grammar->prod[item.prod].left]);
+            
+            int k;
+            for (k = 0; k != item.pos; k++)
+            {
+                printf("%s ", grammar->token_names.
+                       list[grammar->prod[item.prod].list[k]]);
+            }
+            printf("* ");
+            for ( ; k < grammar->prod[item.prod].size; k++)
+            {
+                printf("%s ", grammar->token_names.
+                       list[grammar->prod[item.prod].list[k]]);
+            }
+            printf("| %s\n", grammar->token_names.list[item.end]);
+        }
+    }
+    
+    printf("----------\n");
+    for (i = 0; i < transit->size; i++)
+    {
+        int j;
+        for (j = 0; j < grammar->token_names.size; j++)
+        {
+            table_cell_t cur = transit->list[i][j];
+            switch (cur.action)
+            {
+            case AC_SHIFT:
+                printf("s%02d ", cur.num);
+                break;
+            case AC_REDUCE:
+                printf("r%02d ", cur.num);
+                break;
+            case AC_ACCEPT:
+                printf("acc ");
+                break;
+            case AC_ERROR:
+                printf("    ");
+                break;
+            }
+        }
+        printf("\n");
+    }
+}
+
 bool contains(first_t* first, int elem)
 {
     int i;
@@ -18,6 +75,7 @@ bool contains(first_t* first, int elem)
     return false;
 }
 
+
 void merge_first_sets(first_t* left, first_t* right)
 {
     int i;
@@ -29,6 +87,7 @@ void merge_first_sets(first_t* left, first_t* right)
         }
     }
 }
+
 
 void calc_first(token_id_t token, grammar_t* grammar, first_t* first)
 {
@@ -57,6 +116,7 @@ void calc_first(token_id_t token, grammar_t* grammar, first_t* first)
     }
 }
 
+
 void malloc_added(bool*** added, int tokens_count)
 {
     *added = malloc(tokens_count * sizeof(bool*));
@@ -72,8 +132,9 @@ void malloc_added(bool*** added, int tokens_count)
     }
 }
 
+
 void add_items(token_id_t head, token_id_t end, item_list_t* set, bool** added,
-                grammar_t* grammar)
+               grammar_t* grammar)
 {
     if (added[head][end]) return;
     
@@ -92,6 +153,7 @@ void add_items(token_id_t head, token_id_t end, item_list_t* set, bool** added,
     added[head][end] = true;
 }
 
+
 int comparator(const void* f, const void* s)
 {
 	item_t* a = ((item_t*) f);
@@ -106,6 +168,7 @@ int comparator(const void* f, const void* s)
 	}
 	return a->end - b->end;
 }
+
 
 void closure(int state, grammar_t* grammar, item_list_t* scheme, first_t* first)
 {
@@ -126,7 +189,7 @@ void closure(int state, grammar_t* grammar, item_list_t* scheme, first_t* first)
             for (j = 0; j < first[neigh].size; j++)
             {
                 add_items(head, first[neigh].list[j], &scheme[state], added, 
-                    grammar);
+                          grammar);
             }
         }
         else
@@ -138,6 +201,7 @@ void closure(int state, grammar_t* grammar, item_list_t* scheme, first_t* first)
     qsort(scheme[state].list, scheme[state].size,
 		  sizeof(item_t), comparator);
 }
+
 
 bool is_equal_states(item_list_t* a, item_list_t* b)
 {
@@ -160,8 +224,9 @@ bool is_equal_states(item_list_t* a, item_list_t* b)
 	return true;
 }
 
+
 void make_transitions(int state, token_id_t token, item_list_t* scheme, 
-    transit_t* transit, grammar_t* grammar, first_t* first)
+                      transit_t* transit, grammar_t* grammar, first_t* first)
 {
     scheme[transit->size].size = 0;
     bool is_empty = true;
@@ -172,7 +237,6 @@ void make_transitions(int state, token_id_t token, item_list_t* scheme,
         if (item.pos < grammar->prod[item.prod].size &&
             grammar->prod[item.prod].list[item.pos] == token)
         {
-            //printf("hehe\n");
             scheme[transit->size].list[scheme[transit->size].size] = item;
             scheme[transit->size].list[scheme[transit->size].size].pos++;
             scheme[transit->size].size++;
@@ -205,8 +269,9 @@ void make_transitions(int state, token_id_t token, item_list_t* scheme,
     }
 }
 
+
 void find_reduce(int state, grammar_t* grammar, item_list_t* scheme, 
-    transit_t* transit)
+                 transit_t* transit)
 {
     int i;
     for (i = 0; i < scheme[state].size; i++)
@@ -218,8 +283,7 @@ void find_reduce(int state, grammar_t* grammar, item_list_t* scheme,
             {
                 printf("[gen_tables.c] Invalid grammar. ");
                 printf("The conflict for {%d, %s}\n", state,
-                    grammar->token_names.list[item.end]);
-                //exit(0);
+                       grammar->token_names.list[item.end]);
             }
             
             if (item.prod == 0)
@@ -235,13 +299,14 @@ void find_reduce(int state, grammar_t* grammar, item_list_t* scheme,
     }
 }
 
-void build_automaton(grammar_t* grammar, item_list_t* scheme, transit_t* transit,
-    first_t* first)
+
+void build_automaton(grammar_t* grammar, item_list_t* scheme,
+                     transit_t* transit, first_t* first)
 {
     
     scheme[0].list[0].prod =
         scheme[0].list[0].pos =
-            scheme[0].list[0].end = 0;
+        scheme[0].list[0].end = 0;
     scheme[0].size = 1;
     transit->size = 1;
     closure(0, grammar, scheme, first);
@@ -269,6 +334,7 @@ void malloc_first(first_t** first, int tokens_count)
         (*first)[i].list = malloc(tokens_count * sizeof(int));
     }
 }
+
 
 void beautify_tables(grammar_t* grammar, transit_t* transit)
 {
@@ -298,18 +364,18 @@ void beautify_tables(grammar_t* grammar, transit_t* transit)
             printf("        {");
             switch (cell->action)
             {
-                case AC_SHIFT:
-                    printf("AC_SHIFT, %d", cell->num);
-                    break;
-                case AC_REDUCE:
-                    printf("AC_REDUCE, %d", cell->num);
-                    break;
-                case AC_ACCEPT:
-                    printf("AC_ACCEPT, 0");
-                    break;
-                case AC_ERROR:
-                    printf("AC_ERROR, 0");
-                    break;
+            case AC_SHIFT:
+                printf("AC_SHIFT, %d", cell->num);
+                break;
+            case AC_REDUCE:
+                printf("AC_REDUCE, %d", cell->num);
+                break;
+            case AC_ACCEPT:
+                printf("AC_ACCEPT, 0");
+                break;
+            case AC_ERROR:
+                printf("AC_ERROR, 0");
+                break;
             }
             printf("},\n");
         }
@@ -318,83 +384,19 @@ void beautify_tables(grammar_t* grammar, transit_t* transit)
     printf("},\n");
 }
 
+
 int main()
 {
     grammar_t grammar = 
     {
         #include "grammar.h"
-        /*
-        .token_names = 
-        {
-            .size = 6,
-            .list = (char*[])
-            {
-                "$",
-                "^",
-                "E",
-                "PLUS",
-                "NUM",
-                "MINUS",
-            },
-        },
-        .prod = (production_t[])
-        {
-            {
-                .left = 1,
-                .list = (int[])
-                {
-                    2,
-                },
-                .size = 1,
-            },
-            {
-                .left = 2,
-                .list = (int[])
-                {
-                    2, 3, 4
-                },
-                .size = 3,
-            },
-            {
-                .left = 2,
-                .list = (int[])
-                {
-                    2, 5, 4
-                },
-                .size = 3,
-            },
-            {
-                .left = 2,
-                .list = (int[])
-                {
-                    4,
-                },
-                .size = 1,
-            },
-        },
-        .size = 4,
-        */
     };
     
     first_t* first;
     malloc_first(&first, grammar.token_names.size);
     
-    int i;
-    /*
-    for (i = 0; i < grammar.token_names.size; i++)
-    {
-        calc_first(i, &grammar, first);
-        printf("%s: ", grammar.token_names.list[i]);
-        int j;
-        for (j = 0; j < first[i].size; j++)
-        {
-            printf("%s ", grammar.token_names.list[first[i].list[j]]);
-        }
-        printf("\n");
-    }
-    */
-    
     transit_t transit;
+    int i;
     for (i = 0; i < MAX_STATES; i++)
     {
         int j;
@@ -403,60 +405,9 @@ int main()
             transit.list[i][j].action = AC_ERROR;
         }
     }
+    
     item_list_t scheme[MAX_STATES];
-    build_automaton(&grammar, scheme, &transit, first);
-
-    /*
-    for (i = 0; i < transit.size; i++)
-    {
-        printf("(%d)----------------\n", i);
-        int j;
-        for (j = 0; j < scheme[i].size; j++)
-        {
-            item_t item = scheme[i].list[j];
-            printf("%s -> ", grammar.token_names.list[grammar.prod[item.prod].left]);
-            
-            int k;
-            for (k = 0; k != item.pos; k++)
-            {
-                printf("%s ", grammar.token_names.list[grammar.prod[item.prod].list[k]]);
-            }
-            printf("* ");
-            for ( ; k < grammar.prod[item.prod].size; k++)
-            {
-                printf("%s ", grammar.token_names.list[grammar.prod[item.prod].list[k]]);
-            }
-            printf("| %s\n", grammar.token_names.list[item.end]);
-        }
-    }
-    
-    printf("----------\n");
-    for (i = 0; i < transit.size; i++)
-    {
-        int j;
-        for (j = 0; j < grammar.token_names.size; j++)
-        {
-            table_cell_t cur = transit.list[i][j];
-            switch (cur.action)
-            {
-                case AC_SHIFT:
-                    printf("s%02d ", cur.num);
-                    break;
-                case AC_REDUCE:
-                    printf("r%02d ", cur.num);
-                    break;
-                case AC_ACCEPT:
-                    printf("acc ");
-                    break;
-                case AC_ERROR:
-                    printf("    ");
-                    break;
-            }
-        }
-        printf("\n");
-    }
-    */
-    
+    build_automaton(&grammar, scheme, &transit, first);    
     
     beautify_tables(&grammar, &transit);
 }

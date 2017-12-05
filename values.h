@@ -6,7 +6,8 @@
 #define INVALID_TOKEN -1
 #define MAX_STATES 300
 #define MAX_TOKENS 300
-#define NOT_CHAR 254
+
+const char NOT_CHAR = 254;
 
 typedef int token_id_t;
 
@@ -51,7 +52,6 @@ typedef struct buffer_t
 
 typedef struct node_t
 {
-    int index;
     node_type_t type;
     char symbol;
     int prior;

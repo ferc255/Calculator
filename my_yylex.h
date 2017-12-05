@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -7,7 +8,7 @@
 
 
 int calc_max_match(lex_automaton_t* automaton, char* input, int start_pos, 
-    token_id_t* token)
+                   token_id_t* token)
 {
     int cur_state = 0;
     int result = 0;
@@ -30,6 +31,7 @@ int calc_max_match(lex_automaton_t* automaton, char* input, int start_pos,
     return result;
 }
 
+
 void parse_data(token_t* token, char* input, int start_pos, int len)
 {
     char* temp = malloc(len);
@@ -46,65 +48,13 @@ void parse_data(token_t* token, char* input, int start_pos, int len)
     token->data = atoi(temp);
 }
 
+
 token_t my_yylex()
 {
     lex_automaton_t automaton =
     {
-        /*
-        .size = 4,
-        .final = (int[])
-        {
-            [0 ... 3] = INVALID_TOKEN,
-            [1] = 3,
-            [2] = 5,
-            [3] = 4,
-        },
-        .table = (int*[])
-        {
-            (int[])
-            {
-                [0 ... (1 << CHAR_BIT) - 1] = ERROR_STATE,
-                ['+'] = 1,
-                ['-'] = 2,
-                ['0'] = 3,
-                ['1'] = 3,
-                ['2'] = 3,
-                ['3'] = 3,
-                ['4'] = 3,
-                ['5'] = 3,
-                ['6'] = 3,
-                ['7'] = 3,
-                ['8'] = 3,
-                ['9'] = 3,
-            },
-            (int[])
-            {
-                [0 ... (1 << CHAR_BIT) - 1] = ERROR_STATE,
-            },
-            (int[])
-            {
-                [0 ... (1 << CHAR_BIT) - 1] = ERROR_STATE,
-            },
-            (int[])
-            {
-                [0 ... (1 << CHAR_BIT) - 1] = ERROR_STATE,
-                ['0'] = 3,
-                ['1'] = 3,
-                ['2'] = 3,
-                ['3'] = 3,
-                ['4'] = 3,
-                ['5'] = 3,
-                ['6'] = 3,
-                ['7'] = 3,
-                ['8'] = 3,
-                ['9'] = 3,
-            },
-        },
-        */
-
         #include "lex_automaton.h"
     }; 
-    //printf("%d\n", automaton.size);
     
     static bool is_initialized = false;
     static char input[BUFFER_SIZE];

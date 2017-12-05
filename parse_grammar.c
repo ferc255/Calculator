@@ -4,32 +4,30 @@
 
 #include "values.h"
 
+
 char* parse_lexeme(char* input, int start_pos)
 {
-    //printf("s=%s", input);
     char temp[BUFFER_SIZE];
     int i;
     for (i = start_pos; input[i] != ' ' && input[i] != '\t' && input[i] != ':'
-        && input[i] != '\n'; i++)
+             && input[i] != '\n'; i++)
     {
         temp[i - start_pos] = input[i];
     }
     temp[i] = '\0';
+    
     char* result = temp;
-    //*result = temp;
-    //printf("%s\n", result);
     return result;
 }
 
-int get_token_id(int* tokens, char token_names[][BUFFER_SIZE])//, char* token_names[MAX_TOKENS][BUFFER_SIZE])
+
+int get_token_id(int* tokens, char token_names[][BUFFER_SIZE])
 {
-    //printf("token_last = |%s|\n", token_names[*tokens]);
     int i;
     for (i = 0; i < *tokens; i++)
     {
         if (strcmp(token_names[i], token_names[*tokens]) == 0)
         {
-            //printf("%s %s\n", token_names[i], token_names[*tokens]);
             return i;
         }
     }
@@ -38,12 +36,13 @@ int get_token_id(int* tokens, char token_names[][BUFFER_SIZE])//, char* token_na
     return *tokens - 1;
 }
 
+
 int parse_until(char* input, char symbol, int* start_pos, int* tokens,
-    char token_names[][BUFFER_SIZE])
+                char token_names[][BUFFER_SIZE])
 {
     int i;
     for (i = *start_pos; input[i] != ' ' && input[i] != '\t' && 
-        input[i] != symbol; i++)
+             input[i] != symbol; i++)
     {
         token_names[*tokens][i - *start_pos] = input[i];
     }
@@ -56,7 +55,7 @@ int parse_until(char* input, char symbol, int* start_pos, int* tokens,
 }
 
 void parse_line(char* input, int* count, int* tokens,
-    char token_names[][BUFFER_SIZE])
+                char token_names[][BUFFER_SIZE])
 {
     int i;
     for (i = 0; input[i] == ' ' || input[i] == '\t'; i++);
@@ -68,7 +67,6 @@ void parse_line(char* input, int* count, int* tokens,
     printf("    {\n        .left = %d,\n", left);
     printf("        .list = (token_id_t[])\n        {\n            ");
     
-    //printf("pos = %d\n", i);
     int size = 0;
     while (input[i] != '\n')
     {
@@ -78,6 +76,7 @@ void parse_line(char* input, int* count, int* tokens,
     }
     printf("\n        },\n        .size = %d,\n    },\n", size);
 }
+
 
 int main()
 {
@@ -96,7 +95,6 @@ int main()
     while (fgets(input, sizeof input, stdin))
     {
         parse_line(input, &count, &tokens, token_names);
-        //printf("s=%s", input);
     }
     
     printf("},\n.size = %d,\n.token_names = \n{\n", count);

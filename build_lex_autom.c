@@ -6,7 +6,8 @@
 
 #include "values.h"
 
-void print_arr(node_t* arr[MAX_STATES], int *sz)
+
+void print_arr(node_t** arr, int *sz)
 {
     int i;
     for (i = 0; i < *sz; i++)
@@ -51,6 +52,7 @@ void print_dfs(node_t* v)
     printf("====\n");
 }
 
+
 void link(node_t** work, node_t** current)
 {
     if ((*work)->parent)
@@ -72,6 +74,7 @@ void link(node_t** work, node_t** current)
     }
 }
 
+
 node_t* build_parse_tree(buffer_t* input)
 {
     struct node_t* work = malloc(sizeof(node_t));
@@ -86,55 +89,61 @@ node_t* build_parse_tree(buffer_t* input)
             current->type = input->rule[i].list[j].type;
             current->symbol = input->rule[i].list[j].symbol;
             current->prior = default_prior[current->type];
+            current->parent = NULL;
             
             switch (current->type)
             {
-                case NT_CHAR: case NT_END: case NT_EPS:
-                    link(&work, &current);
+            case NT_CHAR: case NT_END: case NT_EPS:        
+                link(&work, &current);
+
+                free(work);
+                work = current;
+                break;
                     
-                    work = current;
-                    break;
+            case NT_LPAREN:
+                link(&work, &current);
+
+                free(work);
+                work = current;
+                work->left = malloc(sizeof(node_t));
+                work->left->parent = work;
+                work = work->left;
                     
-                case NT_LPAREN:
-                    link(&work, &current);
+                break;
                     
-                    work = current;
-                    work->left = malloc(sizeof(node_t));
-                    work->left->parent = work;
-                    work = work->left;
-                    break;
+            case NT_RPAREN:
+                while (work->type != NT_LPAREN || work->prior == 0)
+                {
+                    work = work->parent;
+                }
+                work->prior = 0;
+                break;
                     
-                case NT_RPAREN:
-                    while (work->type != NT_LPAREN || work->prior == 0)
-                    {
-                        work = work->parent;
-                    }
-                    work->prior = 0;
-                    break;
+            case NT_STAR:
+                link(&work, &current);
                     
-                case NT_STAR:
-                    link(&work, &current);
+                current->left = work;
+                work->parent = current;
+                work = current;
+                break;
                     
-                    current->left = work;
-                    work->parent = current;
-                    work = current;
-                    break;
+            case NT_OR: case NT_CAT:                    
+                while (work->parent &&
+                       work->parent->prior <= current->prior)
+                {
+                    work = work->parent;
+                }
+                link(&work, &current);
                     
-                case NT_OR: case NT_CAT:
-                    while (work->parent && work->parent->prior <= current->prior)
-                    {
-                        work = work->parent;
-                    }
-                    link(&work, &current);
-                    
-                    current->left = work;
-                    current->right = malloc(sizeof(node_t));
-                    current->right->parent = current;
-                    work->parent = current;
-                    work = current->right;
+                current->left = work;
+                current->right = malloc(sizeof(node_t));
+                current->right->parent = current;
+                work->parent = current;
+                work = current->right;
             }
-        }
-        
+        }        
+
+        int cnt = 0;
         while (work->parent)
         {
             work = work->parent;
@@ -143,6 +152,7 @@ node_t* build_parse_tree(buffer_t* input)
         if (i != input->count - 1)
         {
             struct node_t* current = malloc(sizeof(node_t));
+            current->parent = NULL;
             current->type = NT_OR;
             current->prior = default_prior[current->type];
             
@@ -167,6 +177,7 @@ void merge_arrays(node_t** a, int* sz_a, node_t** b, int* sz_b)
     }
 }
 
+
 void merge_sets(node_t** a, int* sz_a, node_t** b, int* sz_b)
 {
     int i;
@@ -190,6 +201,7 @@ void merge_sets(node_t** a, int* sz_a, node_t** b, int* sz_b)
     }
 }
 
+
 void calc_sets(node_t** v)
 {
     if ((*v)->left)
@@ -207,51 +219,69 @@ void calc_sets(node_t** v)
     }
     else if ((*v)->type == NT_OR)
     {
-        (*v)->is_nullable = (*v)->left->is_nullable || (*v)->right->is_nullable;
-        merge_arrays((*v)->first, &(*v)->first_ptr, (*v)->left->first, &(*v)->left->first_ptr);
-        merge_arrays((*v)->first, &(*v)->first_ptr, (*v)->right->first, &(*v)->right->first_ptr);
+        (*v)->is_nullable = (*v)->left->is_nullable ||
+            (*v)->right->is_nullable;
+        merge_arrays((*v)->first, &(*v)->first_ptr,
+                     (*v)->left->first, &(*v)->left->first_ptr);
+        merge_arrays((*v)->first, &(*v)->first_ptr,
+                     (*v)->right->first, &(*v)->right->first_ptr);
 
-        merge_arrays((*v)->last, &(*v)->last_ptr, (*v)->left->last, &(*v)->left->last_ptr);
-        merge_arrays((*v)->last, &(*v)->last_ptr, (*v)->right->last, &(*v)->right->last_ptr);
+        merge_arrays((*v)->last, &(*v)->last_ptr,
+                     (*v)->left->last, &(*v)->left->last_ptr);
+        merge_arrays((*v)->last, &(*v)->last_ptr,
+                     (*v)->right->last, &(*v)->right->last_ptr);
     }
     else if ((*v)->type == NT_CAT)
     {
-        (*v)->is_nullable = (*v)->left->is_nullable && (*v)->right->is_nullable;
-        merge_arrays((*v)->first, &(*v)->first_ptr, (*v)->left->first, &(*v)->left->first_ptr);
+        (*v)->is_nullable = (*v)->left->is_nullable &&
+            (*v)->right->is_nullable;
+        merge_arrays((*v)->first, &(*v)->first_ptr,
+                     (*v)->left->first, &(*v)->left->first_ptr);
         if ((*v)->left->is_nullable)
         {
-            merge_arrays((*v)->first, &(*v)->first_ptr, (*v)->right->first, &(*v)->right->first_ptr);
+            merge_arrays((*v)->first, &(*v)->first_ptr,
+                         (*v)->right->first, &(*v)->right->first_ptr);
         }
         
-        merge_arrays((*v)->last, &(*v)->last_ptr, (*v)->right->last, &(*v)->right->last_ptr);
+        merge_arrays((*v)->last, &(*v)->last_ptr,
+                     (*v)->right->last, &(*v)->right->last_ptr);
         if ((*v)->right->is_nullable)
         {
-            merge_arrays((*v)->last, &(*v)->last_ptr, (*v)->left->last, &(*v)->left->last_ptr);
+            merge_arrays((*v)->last, &(*v)->last_ptr,
+                         (*v)->left->last, &(*v)->left->last_ptr);
         }
         
         int i;
         for (i = 0; i < (*v)->left->last_ptr; i++)
         {
-            merge_sets((*v)->left->last[i]->follow, &(*v)->left->last[i]->follow_ptr, (*v)->right->first, &(*v)->right->first_ptr);
+            merge_sets((*v)->left->last[i]->follow,
+                       &(*v)->left->last[i]->follow_ptr,
+                       (*v)->right->first, &(*v)->right->first_ptr);
         }
     }
     else if ((*v)->type == NT_STAR)
     {
         (*v)->is_nullable = true;
-        merge_arrays((*v)->first, &(*v)->first_ptr, (*v)->left->first, &(*v)->left->first_ptr);
-        merge_arrays((*v)->last, &(*v)->last_ptr, (*v)->left->last, &(*v)->left->last_ptr);
+        merge_arrays((*v)->first, &(*v)->first_ptr,
+                     (*v)->left->first, &(*v)->left->first_ptr);
+        merge_arrays((*v)->last, &(*v)->last_ptr,
+                     (*v)->left->last, &(*v)->left->last_ptr);
         
         int i;
         for (i = 0; i < (*v)->left->last_ptr; i++)
         {
-            merge_sets((*v)->left->last[i]->follow, &(*v)->left->last[i]->follow_ptr, (*v)->left->first, &(*v)->left->first_ptr);
+            merge_sets((*v)->left->last[i]->follow,
+                       &(*v)->left->last[i]->follow_ptr,
+                       (*v)->left->first, &(*v)->left->first_ptr);
         }
     }
     else if ((*v)->type == NT_LPAREN)
     {
         (*v)->is_nullable = (*v)->left->is_nullable;
-        merge_arrays((*v)->first, &(*v)->first_ptr, (*v)->left->first, &(*v)->left->first_ptr);
-        merge_arrays((*v)->last, &(*v)->last_ptr, (*v)->left->last, &(*v)->left->last_ptr);
+        merge_arrays((*v)->first, &(*v)->first_ptr,
+                     (*v)->left->first, &(*v)->left->first_ptr);
+        merge_arrays((*v)->last, &(*v)->last_ptr,
+                     (*v)->left->last, &(*v)->left->last_ptr);
     }
     else if ((*v)->type == NT_EPS)
     {
@@ -302,19 +332,8 @@ int find_state(node_t* aux[][MAX_STATES], int size, int* state_size)
 }
 
 
-void print_arr2(node_t** arr, int *sz)
-{
-    int i;
-    for (i = 0; i < *sz; i++)
-    {
-        printf("%p ", arr[i]);
-    }
-    printf("\n");
-}
-
-
-void build_automaton(int autom[][(1 << CHAR_BIT)], int* size, int* final, node_t* root, 
-    buffer_t* input)
+void build_automaton(int autom[][(1 << CHAR_BIT)], int* size, int* final,
+                     node_t* root, buffer_t* input)
 {
     node_t* aux[MAX_STATES][MAX_STATES];
     int state_size[MAX_STATES];
@@ -332,7 +351,7 @@ void build_automaton(int autom[][(1 << CHAR_BIT)], int* size, int* final, node_t
         for (j = 0; j < state_size[i]; j++)
         {
             if (aux[i][j]->type == NT_END && (final[i] == INVALID_TOKEN || 
-                final[i] > aux[i][j]->symbol))
+                                              final[i] > aux[i][j]->symbol))
             {
                 final[i] = aux[i][j]->symbol;
             }
@@ -346,7 +365,8 @@ void build_automaton(int autom[][(1 << CHAR_BIT)], int* size, int* final, node_t
             {
                 if (aux[i][k]->symbol == j)
                 {
-                    merge_sets(aux[*size], &state_size[*size], aux[i][k]->follow, &aux[i][k]->follow_ptr);
+                    merge_sets(aux[*size], &state_size[*size],
+                               aux[i][k]->follow, &aux[i][k]->follow_ptr);
                 }
             }
             if (state_size[*size] == 0) continue;
@@ -360,46 +380,15 @@ void build_automaton(int autom[][(1 << CHAR_BIT)], int* size, int* final, node_t
             autom[i][j] = state_idx;
         }
     }
-    
-    /*
-    printf("%d\n", *size);
-    for (i = 0; i < *size; i++)
-    {
-        printf("%d ", i);
-        int j;
-        for (j = 0; j < state_size[i]; j++)
-        {
-            printf("%p ", aux[i][j]);
-        }
-        printf("\n");
-    }
-    
-    printf("aaaa\n");
-    for (i = 0; i < *size; i++)
-    {
-        printf("%d ", i);
-        int j;
-        for (j = 0; j < (1 << CHAR_BIT); j++)
-        {
-            if (autom[i][j] != ERROR_STATE)
-            {
-                printf("(%d, %d) ", j, autom[i][j]);
-            }
-        }
-        if (final[i] != INVALID_TOKEN)
-        {
-            printf("%s ", input->rule[final[i]].abbrev);
-        }
-        printf("\n");
-    }
-    */
 }
 
 
 void beautify_automaton(int autom[][(1 << CHAR_BIT)], int* size, int* final,
-    buffer_t* input, grammar_t* grammar)
+                        buffer_t* input, grammar_t* grammar)
 {
-    printf(".size = %d,\n.final = (int[])\n{\n    [0 ... %d] = INVALID_TOKEN,\n", *size, *size - 1);
+    printf(".size = %d,\n.final = (int[])\n{\n", *size);
+    printf("    [0 ... %d] = INVALID_TOKEN,\n", *size - 1);
+    
     int i;
     for (i = 0; i < *size; i++)
     {
@@ -410,7 +399,7 @@ void beautify_automaton(int autom[][(1 << CHAR_BIT)], int* size, int* final,
             for (j = 0; j < grammar->token_names.size; j++)
             {
                 if (strcmp(grammar->token_names.list[j], 
-                    input->rule[final[i]].abbrev) == 0)
+                           input->rule[final[i]].abbrev) == 0)
                 {
                     token_id = j;
                     break;
@@ -427,7 +416,9 @@ void beautify_automaton(int autom[][(1 << CHAR_BIT)], int* size, int* final,
     
     for (i = 0; i < *size; i++)
     {
-        printf("    (int[])\n    {\n        [0 ... (1 << CHAR_BIT) - 1] = ERROR_STATE,\n");
+        printf("    (int[])\n    {\n");
+        printf("        [0 ... (1 << CHAR_BIT) - 1] = ERROR_STATE,\n");
+        
         int j;
         for (j = 0; j < (1 << CHAR_BIT); j++)
         {
@@ -462,8 +453,7 @@ void beautify_automaton(int autom[][(1 << CHAR_BIT)], int* size, int* final,
                 {
                     printf("%c", j);
                 }
-                printf("\'] = %d,\n", autom[i][j]);
-                //printf("        [\'%c\'] = %d,\n", j, autom[i][j]);
+                printf("\'] = %d,\n", autom[i][j]);        
             }
         }
         printf("    },\n");
@@ -478,13 +468,8 @@ int main()
     {
         #include "lex_sequence.h"
     };
-    
-
     node_t* work = build_parse_tree(&input);
-    
     calc_sets(&work);
-    
-    //print_dfs(work);
     
     int autom[MAX_STATES][(1 << CHAR_BIT)];
     int i;
@@ -504,7 +489,7 @@ int main()
     grammar_t grammar = 
     {
         #include "grammar.h"
-    };
+    };    
     beautify_automaton(autom, &size, final, &input, &grammar);
     
     return 0;
