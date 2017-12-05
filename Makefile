@@ -1,16 +1,44 @@
-all: lex_app
+all: main
 
-lex_app: automaton.h my_yylex.c
-	$(CC) my_yylex.c -o $@
+main: main.c syn_tables.h my_yylex.h lex_automaton.h executions.h
+	$(CC) $< -lm -o $@
 
-automaton.h: BLA
-	./BLA > automaton.h
 
-BLA: lex_sequence.h build_lex_autom.c
-	$(CC) build_lex_autom.c -o $@
+syn_tables.h: GT
+	./$< > $@
+
+GT: gen_tables.c grammar.h
+	$(CC) $< -o $@
+
+grammar.h: PG grammar.txt
+	./$< < $(word 2, $^) > $@
+
+PG: parse_grammar.c
+	$(CC) $< -o $@
+
+
+lex_automaton.h: BLA
+	./$< > $@
+
+BLA: build_lex_autom.c lex_sequence.h
+	$(CC) $< -o $@
 
 lex_sequence.h: PLR lex_rules.txt
-	./PLR < lex_rules.txt > lex_sequence.h
+	./$< < $(word 2, $^) > $@
 
 PLR: parse_lex_rules.c
 	$(CC) $< -o $@
+
+
+executions.h: BE grammar.txt
+	./$< < $(word 2, $^) > $@
+
+BE: build_executions.c
+	$(CC) $< -o $@
+
+
+clean:
+	rm -f PG grammar.h GT syn_tables.h
+	rm -f PLR lex_sequence.h BLA lex_automaton.h
+	rm -f BE executions.h
+	rm -f output.txt

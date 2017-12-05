@@ -1,0 +1,4 @@
+#!/bin/bash
+cp $1/* ../
+echo "Expected result:"
+cat $1/output.txt
