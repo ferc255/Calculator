@@ -20,7 +20,7 @@ PG: parse_grammar.c
 lex_automaton.h: BLA
 	./$< > $@
 
-BLA: build_lex_autom.c lex_sequence.h
+BLA: build_lex_autom.c lex_sequence.h grammar.h
 	$(CC) $< -o $@
 
 lex_sequence.h: PLR lex_rules.txt
