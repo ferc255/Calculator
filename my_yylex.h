@@ -34,8 +34,9 @@ int calc_max_match(lex_automaton_t* automaton, char* input, int start_pos,
 
 void parse_data(token_t* token, char* input, int start_pos, int len)
 {
-    char* temp = malloc(len);
+    char* temp = malloc(len + 1);
     memcpy(temp, input + start_pos, len);
+    temp[len] = '\0';
     
     int i;
     for (i = 0; i < strlen(temp); i++)
